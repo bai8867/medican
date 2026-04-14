@@ -1,0 +1,60 @@
+server:
+  port: 11888
+  # 本机前后端同机时，用局域网 IP 访问 11888 也监听（便于直连调试；防火墙需放行）
+  address: 0.0.0.0
+
+spring:
+  application:
+    name: campus-diet-backend
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 药膳、食材、周历、用户等表在同一 MySQL 库（见 classpath:db/schema.sql）。勿用 ${VAR:jdbc:mysql://...} 写法，冒号会截断默认值。
+    # 改库名/主机：设 MYSQL_HOST、MYSQL_PORT、MYSQL_DATABASE、MYSQL_USERNAME、MYSQL_PASSWORD；或设 SPRING_DATASOURCE_URL 为完整 JDBC（会覆盖 url）
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:tcm_diet}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:root}
+  sql:
+    init:
+      # 已有完整数据且不想每次启动执行 classpath data.sql 时，设 SPRING_SQL_INIT_MODE=never
+      mode: ${SPRING_SQL_INIT_MODE:always}
+      encoding: UTF-8
+      continue-on-error: true
+      schema-locations: classpath:db/schema.sql,classpath:db/patch-scene-therapy-columns.sql
+      data-locations: classpath:db/data.sql
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# 大模型：OpenAI 兼容。默认网关用分段拼接，避免 ${LLM_URL:http://...} 被冒号截断；完整 URL 可设环境变量 LLM_URL 覆盖 llm.url。
+llm:
+  url: http://${LLM_HTTP_HOST:ds.local.ai}:${LLM_HTTP_PORT:30080}/v1/chat/completions
+  api-key: ${LLM_API_KEY:de00e26309e14847964d42c871c8ffca}
+  model: ${LLM_MODEL:MDQWEN330BBF4AAE62D7EA}
+  timeout: ${LLM_TIMEOUT_MS:120000}
+
+campus:
+  diet:
+    # 启动时把 classpath:bootstrap/mock-recipes.json 写入 recipe 表（同名已存在则跳过）
+    seed-mock-recipes: true
+    # 启动时写入示例收藏、浏览历史、反馈（仅当对应表仍为空时）
+    seed-demo-interactions: true
+    # 当本周某食堂尚无周历时，写入与前端 Mock 等价的演示数据（已有行则跳过）
+    seed-weekly-calendar: true
+  jwt:
+    secret: "campus-diet-jwt-secret-change-in-production-min-32-chars!!"
+    expire-minutes: 10080
+  ai:
+    enabled: true
+    # 为 true 时不调用上游，食疗方案走本地拼装兜底；URL/密钥/模型见顶层 llm.*
+    mock: false
+  recommend:
+    # 个性化分支：体质+季节匹配权重 vs 热度（收藏）权重，和为 1
+    match-weight: 0.6
+    popularity-weight: 0.4

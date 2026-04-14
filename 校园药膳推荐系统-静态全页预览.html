@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>校园药膳推荐 · 静态全页预览</title>
+  <style>
+    :root {
+      --color-primary: #4a7c59;
+      --color-primary-light: #6b9e6f;
+      --color-primary-dark: #3a6247;
+      --color-bg-main: #f9f7f4;
+      --color-bg-card: #f0eee8;
+      --color-text-primary: #2c2c2a;
+      --color-text-secondary: #7a7a78;
+      --color-accent: #d4a373;
+      --color-ai: #8b7d6b;
+      --color-warning: #c75c5c;
+      --font-serif: 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
+      --font-sans: 'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+      --font-size-xs: 12px;
+      --font-size-sm: 13px;
+      --font-size-md: 14px;
+      --font-size-lg: 16px;
+      --font-size-xl: 20px;
+      --font-size-2xl: 24px;
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 12px;
+      --space-lg: 20px;
+      --space-xl: 28px;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-btn: 8px;
+      --radius-lg: 16px;
+      --shadow-soft: 0 4px 14px rgba(44, 44, 42, 0.06);
+      --shadow-card: 0 4px 14px rgba(44, 44, 42, 0.06);
+      --shadow-card-hover: 0 10px 28px rgba(44, 44, 42, 0.12);
+      --color-border: #e5e3de;
+      --color-border-strong: #d4d1c9;
+      --color-bg-elevated: #faf9f6;
+      --color-bg-surface: var(--color-bg-card);
+      --color-text: var(--color-text-primary);
+      --color-text-muted: #9b9b98;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; }
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      color: var(--color-text-primary);
+      background: var(--color-bg-main);
+    }
+    h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; color: var(--color-text-primary); }
+    .hidden { display: none !important; }
+    .view { display: none; }
+    .view.is-active { display: block; }
+    #student-shell { display: none !important; }
+    body.shell-student #student-shell { display: flex !important; }
+
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+      max-width: 1280px;
+      margin: 0 auto;
+      width: 100%;
+      background: var(--color-bg-main);
+    }
+    .app-shell > aside.app-shell__nav {
+      width: 240px;
+      min-width: 240px;
+      flex-shrink: 0;
+    }
+    .app-shell--campus-student > .app-shell__body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .app-shell__main {
+      flex: 1;
+      min-width: 0;
+      padding: var(--space-lg);
+    }
+    .app-shell--campus-student .app-shell__main {
+      flex: 1;
+      min-height: 0;
+    }
+
+    .nav {
+      width: 100%;
+      min-height: 100vh;
+      height: 100vh;
+      max-height: 100vh;
+      position: sticky;
+      top: 0;
+      overflow-y: auto;
+      padding: var(--space-lg) var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+      background: var(--color-bg-elevated);
+      border-right: 1px solid var(--color-border);
+      box-shadow: var(--shadow-soft);
+    }
+    .nav__brand { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-xs) 0; }
+    .nav__logo {
+      width: 44px; height: 44px; border-radius: var(--radius-md);
+      display: grid; place-items: center;
+      font-family: var(--font-serif); font-weight: 700; font-size: var(--font-size-xl);
+      color: #fff; background: var(--color-primary); flex-shrink: 0;
+    }
+    .nav__system-name {
+      display: block;
+      font-family: 'SimSun', 'Songti SC', 'STSong', serif;
+      font-size: var(--font-size-md);
+      font-weight: 600;
+      line-height: 1.35;
+      color: #6b9e47;
+      letter-spacing: 0.02em;
+    }
+    .nav__menu { display: flex; flex-direction: column; gap: var(--space-xs); flex: 1; }
+    .nav__item {
+      display: flex; align-items: center; gap: var(--space-sm);
+      width: 100%; padding: 12px 14px;
+      border: 1px solid transparent; border-radius: var(--radius-md);
+      background: transparent; color: var(--color-text-primary);
+      font-family: var(--font-sans); font-size: var(--font-size-md);
+      cursor: pointer; text-align: left;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .nav__item:hover {
+      background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+      color: var(--color-primary);
+    }
+    .nav__item.is-active {
+      background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+      color: var(--color-primary);
+      border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+      font-weight: 600;
+    }
+    .nav__icon { width: 18px; height: 18px; flex-shrink: 0; color: var(--color-text-secondary); }
+    .nav__item.is-active .nav__icon, .nav__item:hover .nav__icon { color: var(--color-primary); }
+    .nav__footer {
+      display: flex; flex-direction: column; gap: var(--space-md);
+      padding-top: var(--space-md); border-top: 1px solid var(--color-border);
+    }
+    .nav__user {
+      display: flex; align-items: center; gap: var(--space-md);
+      width: 100%; padding: 8px 6px; border: none; border-radius: var(--radius-md);
+      background: transparent; font: inherit; text-align: left; cursor: pointer;
+    }
+    .nav__user:hover { background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+    .nav__avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--color-primary); color: #fff; font-weight: 600;
+      display: grid; place-items: center; flex-shrink: 0; font-size: 16px;
+    }
+    .nav__user-name { font-weight: 600; font-size: var(--font-size-md); }
+    .nav__const-tag {
+      display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px;
+      font-size: 12px; border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+      color: var(--color-primary);
+      background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+    }
+    .nav__const-link {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      width: 100%; padding: 10px 12px;
+      border: 1px dashed color-mix(in srgb, var(--color-primary) 45%, transparent);
+      border-radius: var(--radius-md); background: transparent;
+      color: var(--color-primary); font-size: var(--font-size-sm); cursor: pointer;
+    }
+
+    .campus-mobile-tabbar {
+      display: none;
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 100;
+      background: #fff;
+      border-top: 1px solid var(--color-border);
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      box-shadow: 0 -2px 12px rgba(44,44,42,0.06);
+    }
+    .campus-mobile-tabbar__inner { display: flex; justify-content: space-around; align-items: stretch; min-height: 50px; }
+    .campus-mobile-tabbar a {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px; font-size: 11px; color: var(--color-text-secondary); text-decoration: none; padding: 6px 0;
+    }
+    .campus-mobile-tabbar a.is-active { color: var(--color-primary); font-weight: 600; }
+    .campus-mobile-tabbar svg { width: 22px; height: 22px; }
+
+    @media (max-width: 900px) {
+      .app-shell--campus-student > aside.app-shell__nav { display: none !important; }
+      .app-shell--campus-student .app-shell__main {
+        padding-inline: var(--space-md);
+        padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+      }
+      .campus-mobile-tabbar { display: block; }
+    }
+
+    .admin-login-page {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: var(--space-lg);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(74, 124, 89, 0.12), transparent 45%),
+        radial-gradient(circle at 80% 60%, rgba(212, 163, 115, 0.14), transparent 40%),
+        var(--color-bg-main);
+    }
+    .admin-login-card {
+      width: 100%; max-width: 400px; padding: var(--space-xl);
+      background: #fff; border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border); box-shadow: var(--shadow-card);
+    }
+    .entry-select__card { max-width: 440px; margin: 0 auto; }
+    .entry-select__title {
+      margin: 0 0 var(--space-sm); font-size: var(--font-size-xl);
+      font-family: var(--font-serif); font-weight: 600; text-align: center;
+    }
+    .entry-select__hint { margin: 0 0 var(--space-lg); font-size: var(--font-size-sm); color: var(--color-text-secondary); text-align: center; }
+    .entry-select__actions { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .ep-btn {
+      width: 100%; min-height: 48px; padding: 0 18px; border-radius: var(--radius-btn);
+      font-size: var(--font-size-md); font-family: var(--font-sans); cursor: pointer;
+      border: 1px solid transparent; display: flex; align-items: center; gap: 10px;
+    }
+    .ep-btn--primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .ep-btn--default { background: #fff; color: var(--color-text-primary); border-color: var(--color-border); }
+    .ep-btn--block { width: 100%; justify-content: center; margin-top: 8px; }
+    .campus-login__title { margin: 0 0 var(--space-lg); font-size: var(--font-size-xl); font-family: var(--font-serif); text-align: center; font-weight: 600; }
+    .campus-login__hint { margin: 0 0 var(--space-lg); font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: 1.5; }
+    .ep-field { margin-bottom: 14px; }
+    .ep-field label { display: block; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 6px; }
+    .ep-input {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); font-size: var(--font-size-md); font-family: var(--font-sans);
+    }
+
+    .page-title { margin: 0 0 var(--space-md); font-size: var(--font-size-2xl); font-weight: 600; }
+    .page-subtitle { margin: 0 0 var(--space-lg); font-size: var(--font-size-md); color: var(--color-text-secondary); line-height: 1.55; }
+    .page-card {
+      background: var(--color-bg-surface); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-soft); padding: var(--space-lg); border: 1px solid var(--color-border);
+    }
+
+    .recommend { max-width: 1120px; margin: 0 auto; }
+    .rec-page-card {
+      background: var(--color-bg-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow-soft);
+    }
+    .portrait-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); padding: var(--space-md) var(--space-lg); margin-bottom: var(--space-md); }
+    .portrait-bar__main { display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center; }
+    .el-tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+    .el-tag--success-dark { background: var(--color-primary); color: #fff; }
+    .el-tag--info-plain { background: #f4f4f5; color: #909399; border: 1px solid #e4e4e7; }
+    .el-text-btn { border: none; background: none; color: var(--color-primary); font-weight: 600; cursor: pointer; font-size: var(--font-size-md); }
+    .cold-start {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-md) var(--space-lg); margin-bottom: var(--space-md);
+      cursor: pointer; color: var(--color-primary-dark);
+      background: linear-gradient(90deg, #ecfdf5, #f9f7f4);
+      border: 1px solid #c5e6d0; border-radius: var(--radius-lg);
+    }
+    .reason-card { padding: var(--space-lg); margin-bottom: var(--space-lg); }
+    .reason-card__lead { margin: 0 0 var(--space-sm); font-size: var(--font-size-lg); font-weight: 600; }
+    .reason-card__detail { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: 1.65; }
+    .calendar-entry {
+      display: flex; align-items: center; gap: var(--space-md); width: 100%; margin-bottom: var(--space-md);
+      padding: var(--space-md) var(--space-lg); text-align: left; cursor: pointer;
+      border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
+      background: linear-gradient(110deg, #ecfdf5 0%, #d1fae5 42%, #f0fdf4 100%);
+      border-radius: var(--radius-lg);
+    }
+    .calendar-entry__art {
+      width: 52px; height: 52px; flex-shrink: 0; border-radius: 14px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95), transparent 55%), linear-gradient(145deg, #34d399, #059669);
+    }
+    .calendar-entry__text { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .calendar-entry__kicker { font-size: var(--font-size-xs); letter-spacing: 0.08em; color: var(--color-text-muted); text-transform: uppercase; }
+    .calendar-entry__title { font-size: var(--font-size-lg); font-weight: 700; }
+    .calendar-entry__sub { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+    .calendar-entry__chev { font-size: 28px; color: var(--color-primary); font-weight: 300; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-lg);
+      padding: var(--space-md) var(--space-lg); margin-bottom: var(--space-lg);
+    }
+    .toolbar__filters, .toolbar__sort { display: flex; align-items: center; gap: var(--space-sm); flex-wrap: wrap; }
+    .toolbar__label { font-size: var(--font-size-sm); color: var(--color-text-muted); white-space: nowrap; }
+    .toolbar select { min-width: 140px; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); font-family: var(--font-sans); }
+    .radio-group { display: inline-flex; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; }
+    .radio-group label { padding: 6px 12px; font-size: 12px; cursor: pointer; background: #fff; border-right: 1px solid var(--color-border); }
+    .radio-group label:last-child { border-right: none; }
+    .radio-group input { display: none; }
+    .radio-group input:checked + span { font-weight: 700; color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 10%, #fff); }
+    .radio-group span { display: block; padding: 6px 12px; }
+
+    .masonry {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-lg); align-items: start;
+    }
+    @media (min-width: 900px) { .masonry { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+    .card {
+      background: var(--color-bg-surface); border-radius: var(--radius-lg); overflow: hidden;
+      border: 1px solid var(--color-border); box-shadow: var(--shadow-card);
+      cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-hover); }
+    .card__cover { position: relative; aspect-ratio: 4/3; background: var(--color-bg-elevated); }
+    .card__window-badge {
+      position: absolute; top: 8px; left: 8px; z-index: 2; padding: 4px 8px; border-radius: 6px;
+      font-size: 11px; font-weight: 600; color: #fff; background: rgba(0,0,0,0.55);
+    }
+    .card__placeholder {
+      height: 100%; display: grid; place-items: center; font-size: 36px; font-weight: 700;
+      color: var(--color-primary-light);
+      background: linear-gradient(135deg, #ecfdf5, #d8f3dc);
+    }
+    .card__fav {
+      position: absolute; right: 10px; bottom: 10px; width: 40px; height: 40px;
+      border: none; border-radius: 50%; display: grid; place-items: center;
+      background: rgba(255,255,255,0.92); box-shadow: 0 2px 10px rgba(44,44,42,0.12);
+      cursor: pointer; color: #c75c5c;
+    }
+    .card__fav.is-on { color: #b84444; background: rgba(255,236,236,0.95); }
+    .card__body { padding: var(--space-md); display: flex; flex-direction: column; gap: var(--space-sm); }
+    .card__title { margin: 0; font-size: var(--font-size-lg); line-height: 1.35; font-family: var(--font-serif); }
+    .card__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .mini-tag { font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid #f0c78a; color: #b88230; background: #fdf6ec; }
+    .mini-tag--ok { border-color: #c5e6d0; color: var(--color-primary-dark); background: #f0fdf4; }
+    .card__stats { font-size: var(--font-size-xs); color: var(--color-text-muted); display: flex; gap: var(--space-md); flex-wrap: wrap; }
+    .card__reason { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card__dismiss { align-self: flex-start; margin-top: var(--space-xs); padding: 0; border: none; background: none; font-size: var(--font-size-xs); color: var(--color-text-muted); text-decoration: underline; cursor: pointer; }
+
+    .ai-tile {
+      width: 100%; text-align: left; border: 1px dashed var(--color-border-strong);
+      background: linear-gradient(145deg, #faf9f6, #f0eee8); border-radius: var(--radius-lg);
+      padding: var(--space-lg); cursor: pointer; display: flex; flex-direction: column; gap: var(--space-sm);
+    }
+    .ai-tile__kicker { font-size: var(--font-size-xs); letter-spacing: 0.06em; color: var(--color-ai); text-transform: uppercase; }
+    .ai-tile__title { font-size: var(--font-size-lg); font-weight: 700; }
+    .ai-tile__desc { font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: 1.55; }
+    .ai-tile__cta { margin-top: var(--space-xs); font-size: var(--font-size-sm); font-weight: 600; color: var(--color-primary); }
+
+    .week-offer__head { display: flex; align-items: center; gap: 8px; margin-bottom: var(--space-sm); }
+    .week-offer__dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.25); }
+    .week-offer__title { margin: 0; font-size: var(--font-size-md); font-weight: 700; }
+    .general-head { margin-bottom: var(--space-md); }
+    .general-head__title { margin: 0 0 6px; font-size: var(--font-size-md); font-weight: 700; }
+    .general-head__sub { margin: 0; font-size: var(--font-size-xs); color: var(--color-text-muted); }
+
+    .el-alert { padding: 12px 14px; border-radius: var(--radius-lg); margin-bottom: var(--space-md); display: flex; gap: 10px; align-items: flex-start; font-size: var(--font-size-sm); line-height: 1.55; }
+    .el-alert--info { background: #f4f4f5; border: 1px solid #e4e4e7; color: var(--color-text-secondary); }
+    .el-alert--warning { background: #fdf6ec; border: 1px solid #f5dab1; color: #92600a; }
+
+    .constitution-page { max-width: 720px; margin: 0 auto; }
+    .summary-row { display: flex; gap: var(--space-md); font-size: var(--font-size-md); margin-bottom: 8px; }
+    .summary-label { color: var(--color-text-secondary); min-width: 5em; }
+    .summary-value { font-weight: 600; font-size: var(--font-size-lg); color: var(--color-primary); }
+
+    .campus-scenes .page { max-width: 1100px; margin: 0 auto; }
+    .hero { margin-bottom: var(--space-lg); padding: var(--space-lg) 0 var(--space-md); }
+    .hero__eyebrow { margin: 0 0 8px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-muted); font-weight: 600; }
+    .hero__title { margin: 0 0 12px; font-size: clamp(1.35rem, 2.8vw, 1.75rem); font-weight: 800; line-height: 1.25; font-family: var(--font-sans); }
+    .hero__sub { margin: 0 0 12px; max-width: 36rem; font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: 1.65; }
+    .hero__cal-link { border: none; background: none; color: var(--color-primary); font-weight: 600; font-size: 13px; cursor: pointer; text-decoration: underline; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+    @media (min-width: 700px) { .grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+    @media (min-width: 1000px) { .grid { grid-template-columns: repeat(5, minmax(0,1fr)); } }
+    .scene-card { border: none; padding: 0; background: transparent; cursor: pointer; text-align: left; font: inherit; color: inherit; min-width: 0; }
+    .scene-card__inner {
+      min-height: 200px; border-radius: 18px; padding: 14px;
+      background: linear-gradient(155deg, color-mix(in srgb, var(--color-primary) 14%, var(--color-bg-elevated)), var(--color-bg-elevated));
+      border: 1px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
+      box-shadow: 0 12px 32px color-mix(in srgb, var(--color-text-primary) 6%, transparent);
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    .scene-card:hover .scene-card__inner { transform: translateY(-3px); }
+    .scene-card__top { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+    .scene-card__icon { font-size: 32px; line-height: 1; }
+    .scene-card__name { margin: 0 0 4px; font-size: 14px; font-weight: 700; }
+    .scene-card__tagline { margin: 0; font-size: 11px; font-weight: 600; color: var(--color-primary); }
+    .scene-card__desc { margin: 0 0 8px; font-size: 11px; color: var(--color-text-secondary); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .chip { font-size: 10px; padding: 2px 6px; border-radius: 999px; background: color-mix(in srgb, var(--color-text-primary) 6%, transparent); border: 1px solid var(--color-border); color: var(--color-text-secondary); margin-right: 4px; margin-bottom: 4px; display: inline-block; }
+    .scene-card__week { margin: 0 0 10px; font-size: 11px; font-weight: 600; color: color-mix(in srgb, var(--color-primary) 75%, var(--color-text-secondary)); }
+    .scene-card__foot { display: flex; justify-content: space-between; font-size: 11px; }
+    .scene-card__cta { font-weight: 600; color: var(--color-primary); }
+    .legal { font-size: 11px; color: var(--color-text-muted); margin-top: 16px; }
+
+    .calendar-page { min-height: 100%; padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); background: color-mix(in srgb, var(--color-primary) 5%, #faf9f6); }
+    @media (min-width: 901px) { .calendar-page { padding-bottom: 24px; } }
+    .calendar-shell { max-width: 450px; margin: 0 auto; }
+    .calendar-canteen { display: flex; align-items: center; gap: 4px; padding: 10px 0 6px 12px; }
+    .calendar-canteen__scroll { display: flex; gap: 8px; overflow-x: auto; flex: 1; min-width: 0; }
+    .canteen-chip { flex-shrink: 0; border: none; background: #fff; color: var(--color-text-secondary); font-size: 14px; padding: 8px 14px; border-radius: 20px; cursor: pointer; box-shadow: 0 2px 8px rgb(0 0 0 / 6%); }
+    .canteen-chip--active { color: var(--color-primary); font-weight: 700; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 35%, transparent); }
+    .calendar-dates { padding: 4px 12px 8px; }
+    .calendar-dates__scroll { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 8px; }
+    .date-pill { flex-shrink: 0; width: 52px; min-height: 64px; border-radius: 14px; border: 2px solid transparent; background: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 2px 8px rgb(0 0 0 / 5%); color: var(--color-text-secondary); font-size: 13px; }
+    .date-pill--selected { border-color: color-mix(in srgb, var(--color-primary) 55%, transparent); color: var(--color-primary); font-weight: 700; }
+    .date-pill__num { font-size: 17px; font-weight: 700; color: var(--color-text-primary); }
+    .meal-block { margin-bottom: 20px; }
+    .meal-block__head { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .meal-block__title { margin: 0; font-size: 17px; font-weight: 700; font-family: var(--font-sans); }
+    .dish-list { display: flex; flex-direction: column; gap: 12px; }
+    .dish-card { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 3px 10px rgb(0 0 0 / 6%); cursor: pointer; }
+    .dish-card__name { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+    .dish-card__window { margin: 0 0 6px; font-size: 13px; color: var(--color-text-muted); }
+    .dish-card__price { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: #e67e22; }
+    .calendar-fab {
+      position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 20;
+      width: 72px; min-height: 72px; border: none; border-radius: 36px;
+      background: linear-gradient(145deg, color-mix(in srgb, var(--color-primary) 92%, #fff), var(--color-primary));
+      color: #fff; font-size: 11px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 6px 16px color-mix(in srgb, var(--color-primary) 40%, transparent);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    }
+    @media (max-width: 900px) { .calendar-fab { bottom: calc(52px + 16px + env(safe-area-inset-bottom, 0px)); } }
+
+    .ai-page { max-width: 720px; margin: 0 auto; position: relative; }
+    .compliance-alert { margin: calc(-1 * var(--space-lg)) calc(-1 * var(--space-lg)) var(--space-md); width: calc(100% + 2 * var(--space-lg)); padding: 12px 14px; border: 1px solid rgba(230,162,60,0.55); border-radius: var(--radius-lg); background: #fdf6ec; }
+    .page-subtitle__code { font-family: ui-monospace, monospace; font-size: 0.92em; padding: 0.1em 0.35em; border-radius: 4px; background: rgba(0,0,0,0.05); }
+    .symptom-input { width: 100%; min-height: 200px; padding: 16px 18px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: var(--font-size-md); resize: vertical; }
+    .example-chip { display: block; width: 100%; text-align: left; padding: 10px 14px; margin-bottom: 8px; border-radius: var(--radius-md); border: 1px dashed var(--color-border); background: var(--color-bg-main); cursor: pointer; font-size: var(--font-size-sm); }
+    .ai-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); }
+
+    .profile-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-lg); align-items: center; }
+    .profile-tabs-hd { display: flex; gap: 0; border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-md); }
+    .profile-tabs-hd button {
+      padding: 10px 16px; border: none; background: none; cursor: pointer; font-size: var(--font-size-md);
+      color: var(--color-text-secondary); border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .profile-tabs-hd button.is-active { color: var(--color-primary); font-weight: 600; border-bottom-color: var(--color-primary); }
+    .fav-row { display: flex; align-items: stretch; gap: var(--space-md); padding: var(--space-md); border-radius: var(--radius-lg); border: 1px solid var(--color-border); background: var(--color-bg-surface); margin-bottom: var(--space-sm); cursor: pointer; }
+    .fav-row__cover { width: 88px; height: 66px; flex-shrink: 0; border-radius: var(--radius-md); overflow: hidden; background: var(--color-bg-elevated); display: grid; place-items: center; font-weight: 700; color: var(--color-primary-light); }
+    .fav-row__name { font-weight: 600; }
+    .fav-row__sub { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+
+    .settings-section { margin-bottom: 12px; }
+    .settings-section__title { margin: 0 0 8px 12px; font-size: 15px; font-weight: 700; }
+    .van-cells { margin: 0 16px; border-radius: 10px; overflow: hidden; background: #fff; border: 1px solid var(--color-border); }
+    .van-cell { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; font-size: 15px; cursor: default; }
+    .van-cell:last-child { border-bottom: none; }
+    .van-cell__label { display: block; font-size: 12px; color: var(--color-text-muted); margin-top: 4px; }
+    .van-cell__value { font-size: 14px; color: var(--color-text-muted); margin-right: 8px; }
+    .van-cell.is-link::after { content: '›'; color: #c8c9cc; font-size: 18px; }
+
+    .admin-root { min-height: 100vh; font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-bg-elevated); }
+    .admin-layout { display: flex; min-height: 100vh; }
+    .admin-sidebar { width: 220px; flex-shrink: 0; background: linear-gradient(180deg, var(--color-primary-dark) 0%, #2d4536 100%); border-right: 1px solid var(--color-border-strong); }
+    .admin-sidebar__brand { padding: var(--space-lg) var(--space-md); font-size: var(--font-size-lg); font-weight: 600; color: #f5f3ef; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .admin-menu a {
+      display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: rgba(245,243,239,0.88); text-decoration: none; font-size: 14px;
+    }
+    .admin-menu a.is-active { color: #f0d9b5; background: rgba(255,255,255,0.06); }
+    .admin-main { flex: 1; background: var(--color-bg-main); padding: var(--space-lg); }
+    .admin-header { height: 56px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; background: #fff; border-bottom: 1px solid var(--color-border); padding: 0 var(--space-lg); }
+    .dash-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .dash-card { background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; box-shadow: var(--shadow-soft); }
+    .dash-card h3 { margin: 0 0 8px; font-size: 14px; color: var(--color-text-secondary); font-family: var(--font-sans); }
+    .dash-card .num { font-size: 28px; font-weight: 700; color: var(--color-primary); }
+
+    .recipe-detail { max-width: 720px; margin: 0 auto; }
+    .recipe-detail__bar { display: flex; align-items: center; gap: 12px; margin-bottom: var(--space-md); }
+    .recipe-back { border: none; background: var(--color-bg-surface); padding: 8px 12px; border-radius: var(--radius-md); cursor: pointer; border: 1px solid var(--color-border); }
+  </style>
+</head>
+<body>
+  <div class="view view-fullbleed" data-view="entry">
+    <div class="admin-login-page entry-select">
+      <div class="admin-login-card entry-select__card">
+        <h1 class="entry-select__title">校园药膳推荐系统</h1>
+        <p class="entry-select__hint">请选择进入模式</p>
+        <div class="entry-select__actions">
+          <button type="button" class="ep-btn ep-btn--primary" data-go="login"><span>学生端 · 校园端（推荐 / 体质 / AI）</span></button>
+          <button type="button" class="ep-btn ep-btn--default" data-go="admin-login"><span>后台管理</span></button>
+        </div>
+        <p class="entry-select__hint" style="margin-top:var(--space-lg);font-size:var(--font-size-xs)">选择校园端或后台后，将进入对应登录页；本文件为离线 UI 预览，无真实接口。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="view view-fullbleed" data-view="login">
+    <div class="admin-login-page campus-login">
+      <div class="admin-login-card">
+        <h1 class="campus-login__title">校园端登录</h1>
+        <p class="campus-login__hint">请先启动后端。测试账号：<strong>student</strong> / <strong>123456</strong>，或 <strong>demo</strong> / <strong>demo123</strong>。</p>
+        <div class="ep-field"><label>学号 / 昵称</label><input class="ep-input" placeholder="例如 student" /></div>
+        <div class="ep-field"><label>密码</label><input class="ep-input" type="password" placeholder="例如 123456" /></div>
+        <button type="button" class="ep-btn ep-btn--primary ep-btn--block" data-go="home">登录（预览进入首页）</button>
+        <button type="button" class="ep-btn ep-btn--default ep-btn--block" data-go="entry">返回选择模式</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="view view-fullbleed" data-view="admin-login">
+    <div class="admin-login-page">
+      <div class="admin-login-card">
+        <h1 class="campus-login__title">后台登录</h1>
+        <p class="campus-login__hint">管理员账号登录后进入数据看板（静态预览）。</p>
+        <div class="ep-field"><label>账号</label><input class="ep-input" placeholder="admin" /></div>
+        <div class="ep-field"><label>密码</label><input class="ep-input" type="password" /></div>
+        <button type="button" class="ep-btn ep-btn--primary ep-btn--block" data-go="admin-dash">登录</button>
+        <button type="button" class="ep-btn ep-btn--default ep-btn--block" data-go="entry">返回门户</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="view view-fullbleed" data-view="admin-dash">
+    <div class="admin-root">
+      <div class="admin-layout">
+        <aside class="admin-sidebar">
+          <div class="admin-sidebar__brand">药膳后台</div>
+          <nav class="admin-menu">
+            <a href="#" class="is-active" data-go="admin-dash">数据看板</a>
+            <a href="#" data-go="admin-dash">本周药膳日历</a>
+            <a href="#" data-go="admin-dash">药膳管理</a>
+            <a href="#" data-go="admin-dash">食材管理</a>
+            <a href="#" data-go="admin-dash">用户管理</a>
+            <a href="#" data-go="admin-dash">系统设置</a>
+          </nav>
+        </aside>
+        <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+          <header class="admin-header">
+            <span style="font-size:13px;color:var(--color-text-secondary)">admin（管理员）</span>
+            <button type="button" class="ep-btn ep-btn--default" style="width:auto;min-height:32px;padding:0 14px;font-size:13px" data-go="admin-login">退出</button>
+          </header>
+          <main class="admin-main">
+            <h1 class="page-title" style="font-size:20px;margin-bottom:16px">数据看板</h1>
+            <div class="dash-cards">
+              <div class="dash-card"><h3>平台收藏总量</h3><div class="num">12.8k</div></div>
+              <div class="dash-card"><h3>注册用户</h3><div class="num">1,024</div></div>
+              <div class="dash-card"><h3>本周日历发布</h3><div class="num">已发布</div></div>
+            </div>
+            <p style="margin-top:20px;font-size:13px;color:var(--color-text-secondary)">图表与导出功能在完整 Vue 工程中由 ECharts / XLSX 驱动；此处仅保留版式与配色。</p>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="student-shell" class="app-shell app-shell--campus-student">
+    <aside class="nav app-shell__nav" aria-label="主导航">
+      <header class="nav__brand">
+        <div class="nav__logo" aria-hidden="true">膳</div>
+        <div><span class="nav__system-name">校园药膳推荐系统</span></div>
+      </header>
+      <nav class="nav__menu" aria-label="功能菜单">
+        <button type="button" class="nav__item" data-go="home"><svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V21H3z"/></svg><span class="nav__label">推荐（首页）</span></button>
+        <button type="button" class="nav__item" data-go="calendar"><svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span class="nav__label">本周日历</span></button>
+        <button type="button" class="nav__item" data-go="scenes"><svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span class="nav__label">场景食疗</span></button>
+        <button type="button" class="nav__item" data-go="ai"><svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.5 5L19 10l-5.5 1L12 19l-1.5-8L5 10l5.5-2z"/></svg><span class="nav__label">AI食疗方案</span></button>
+        <button type="button" class="nav__item" data-go="profile"><svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17l-5 3 1-6-4-5h6l2-5 2 5h6l-4 5 1 6z"/></svg><span class="nav__label">我的收藏</span></button>
+        <button type="button" class="nav__item" data-go="settings"><svg class="nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2"/></svg><span class="nav__label">设置</span></button>
+      </nav>
+      <footer class="nav__footer">
+        <button type="button" class="nav__user" data-go="profile">
+          <div class="nav__avatar">示</div>
+          <div><div class="nav__user-name">示例用户</div><span class="nav__const-tag">气虚质</span></div>
+        </button>
+        <button type="button" class="nav__const-link" data-go="constitution">修改体质</button>
+      </footer>
+    </aside>
+    <div class="app-shell__body">
+      <main class="app-shell__main">
+        <div class="view" data-view="home">
+          <div class="page recommend">
+            <div class="portrait-bar rec-page-card">
+              <div class="portrait-bar__main">
+                <span class="el-tag el-tag--success-dark">体质 · 气虚质</span>
+                <span class="el-tag el-tag--info-plain">季节 · 春季</span>
+              </div>
+              <button type="button" class="el-text-btn" data-go="constitution">修改</button>
+            </div>
+            <div class="cold-start rec-page-card" data-go="constitution"><span>完成体质测评，获得更精准的推荐 →</span><span>›</span></div>
+            <section class="reason-card rec-page-card">
+              <p class="reason-card__lead">结合气虚质与春季时令的调养侧重</p>
+              <p class="reason-card__detail">益气健脾、固表补虚；下方列表为与前端 Mock 一致的示意文案与卡片结构。</p>
+            </section>
+            <button type="button" class="calendar-entry rec-page-card" data-go="calendar">
+              <div class="calendar-entry__art"></div>
+              <div class="calendar-entry__text">
+                <span class="calendar-entry__kicker">本周药膳日历</span>
+                <span class="calendar-entry__title">适合你的 5 道菜</span>
+                <span class="calendar-entry__sub">本周排期 · 点按应用个人筛选</span>
+              </div>
+              <span class="calendar-entry__chev">›</span>
+            </button>
+            <div class="toolbar rec-page-card">
+              <div class="toolbar__filters"><span class="toolbar__label">功效</span><select><option>全部功效</option><option>益气</option><option>健脾</option></select></div>
+              <div class="toolbar__filters"><span class="toolbar__label">体质</span><select><option>全部体质</option><option>气虚质</option></select></div>
+              <div class="toolbar__sort"><span class="toolbar__label">排序</span><select><option>按收藏量</option><option>按季节</option></select></div>
+            </div>
+            <section class="week-offer">
+              <div class="week-offer__head"><span class="week-offer__dot"></span><h2 class="week-offer__title">本周可点推荐</h2></div>
+              <div class="masonry masonry--week">
+                <article class="card" data-go="recipe">
+                  <div class="card__cover"><span class="card__window-badge">周二午餐</span><div class="card__placeholder">黄</div>
+                    <button type="button" class="card__fav" onclick="event.stopPropagation();this.classList.toggle('is-on')"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="none" stroke="currentColor" stroke-width="1.75" d="M12 21s-6.716-4.438-9.33-8.15C.55 10.702.5 6.5 3.23 4.36 4.83 3.09 7.21 2.8 9 4c.78.58 1.38 1.4 2 2.2.62-.8 1.22-1.62 2-2.2 1.79-1.2 4.17-.91 5.77.36 2.73 2.14 2.82 6.34-.47 8.49C18.72 16.56 12 21 12 21Z"/></svg></button>
+                  </div>
+                  <div class="card__body">
+                    <h3 class="card__title">黄芪炖鸡</h3>
+                    <div class="card__tags"><span class="mini-tag">益气</span><span class="mini-tag">健脾</span></div>
+                    <div class="card__tags"><span class="mini-tag--ok">宜 气虚质</span></div>
+                    <div class="card__stats"><span>收藏 1280</span><span>约 90 分钟</span></div>
+                    <p class="card__reason">补气固表，适合气虚易感疲劳的你。</p>
+                    <button type="button" class="card__dismiss" onclick="event.stopPropagation()">不感兴趣</button>
+                  </div>
+                </article>
+              </div>
+            </section>
+            <div class="general-head"><h2 class="general-head__title">通用养生推荐</h2><p class="general-head__sub">无固定校园窗口的知识类药膳与调养内容。</p></div>
+            <div class="masonry">
+              <article class="card" data-go="recipe"><div class="card__cover"><div class="card__placeholder">山</div><button type="button" class="card__fav" onclick="event.stopPropagation();this.classList.toggle('is-on')"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="none" stroke="currentColor" stroke-width="1.75" d="M12 21s-6.716-4.438-9.33-8.15C.55 10.702.5 6.5 3.23 4.36 4.83 3.09 7.21 2.8 9 4c.78.58 1.38 1.4 2 2.2.62-.8 1.22-1.62 2-2.2 1.79-1.2 4.17-.91 5.77.36 2.73 2.14 2.82 6.34-.47 8.49C18.72 16.56 12 21 12 21Z"/></svg></button></div><div class="card__body"><h3 class="card__title">山药薏米粥</h3><div class="card__tags"><span class="mini-tag">健脾</span><span class="mini-tag">祛湿</span></div><div class="card__stats"><span>收藏 956</span><span>约 40 分钟</span></div><p class="card__reason">淡渗利湿，帮助化解体内多余水湿。</p><button type="button" class="card__dismiss" onclick="event.stopPropagation()">不感兴趣</button></div></article>
+              <article class="card" data-go="recipe"><div class="card__cover"><div class="card__placeholder">百</div><button type="button" class="card__fav" onclick="event.stopPropagation();this.classList.toggle('is-on')"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="none" stroke="currentColor" stroke-width="1.75" d="M12 21s-6.716-4.438-9.33-8.15C.55 10.702.5 6.5 3.23 4.36 4.83 3.09 7.21 2.8 9 4c.78.58 1.38 1.4 2 2.2.62-.8 1.22-1.62 2-2.2 1.79-1.2 4.17-.91 5.77.36 2.73 2.14 2.82 6.34-.47 8.49C18.72 16.56 12 21 12 21Z"/></svg></button></div><div class="card__body"><h3 class="card__title">百合银耳羹</h3><div class="card__tags"><span class="mini-tag">养阴</span></div><div class="card__stats"><span>收藏 1422</span><span>约 50 分钟</span></div><p class="card__reason">润肺生津，缓解秋燥与熬夜后的口干。</p><button type="button" class="card__dismiss" onclick="event.stopPropagation()">不感兴趣</button></div></article>
+              <article class="card" data-go="recipe"><div class="card__cover"><div class="card__placeholder">莲</div><button type="button" class="card__fav" onclick="event.stopPropagation();this.classList.toggle('is-on')"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="none" stroke="currentColor" stroke-width="1.75" d="M12 21s-6.716-4.438-9.33-8.15C.55 10.702.5 6.5 3.23 4.36 4.83 3.09 7.21 2.8 9 4c.78.58 1.38 1.4 2 2.2.62-.8 1.22-1.62 2-2.2 1.79-1.2 4.17-.91 5.77.36 2.73 2.14 2.82 6.34-.47 8.49C18.72 16.56 12 21 12 21Z"/></svg></button></div><div class="card__body"><h3 class="card__title">莲子芡实猪肚汤</h3><div class="card__tags"><span class="mini-tag">养胃</span></div><div class="card__stats"><span>收藏 640</span></div><p class="card__reason">温养脾胃，适合换季易腹泻、乏力者。</p><button type="button" class="card__dismiss" onclick="event.stopPropagation()">不感兴趣</button></div></article>
+              <button type="button" class="ai-tile" data-go="ai"><span class="ai-tile__kicker">AI 助手</span><span class="ai-tile__title">生成我的药膳方案</span><span class="ai-tile__desc">结合体质、忌口与当季食材，一键获得搭配建议</span><span class="ai-tile__cta">立即体验 →</span></button>
+            </div>
+            <p style="text-align:center;font-size:12px;color:var(--color-text-muted);margin:var(--space-lg) 0">上滑加载更多…（静态预览）</p>
+          </div>
+        </div>
+
+        <div class="view" data-view="calendar">
+          <div class="calendar-page">
+            <div class="calendar-shell">
+              <div class="calendar-canteen" role="tablist">
+                <div class="calendar-canteen__scroll">
+                  <button type="button" class="canteen-chip canteen-chip--active">全部食堂</button>
+                  <button type="button" class="canteen-chip">第一食堂</button>
+                </div>
+              </div>
+              <div class="calendar-dates"><div class="calendar-dates__scroll">
+                <button type="button" class="date-pill"><span>周一</span><span class="date-pill__num">7</span></button>
+                <button type="button" class="date-pill date-pill--selected"><span>周二</span><span class="date-pill__num">8</span></button>
+                <button type="button" class="date-pill"><span>周三</span><span class="date-pill__num">9</span></button>
+              </div></div>
+              <div style="padding:0 16px 24px">
+                <p class="week-sub" style="margin:0 0 12px;font-size:13px;color:var(--color-text-muted)">2026-04-06 — 2026-04-12（示意）</p>
+                <section class="meal-block"><div class="meal-block__head"><h2 class="meal-block__title">早餐</h2><span style="font-size:13px;color:var(--color-text-muted)">2 道</span></div>
+                  <div class="dish-list">
+                    <article class="dish-card" data-go="recipe"><div class="dish-card__name">山药小米粥</div><p class="dish-card__window">北苑 · 粥品窗</p><p class="dish-card__price">¥3.5</p></article>
+                    <article class="dish-card" data-go="recipe"><div class="dish-card__name">南瓜馒头</div><p class="dish-card__window">北苑 · 面点</p><p class="dish-card__price">¥1.0</p></article>
+                  </div>
+                </section>
+                <section class="meal-block"><div class="meal-block__head"><h2 class="meal-block__title">午餐</h2><span style="font-size:13px;color:var(--color-text-muted)">3 道</span></div>
+                  <div class="dish-list">
+                    <article class="dish-card" data-go="recipe" style="position:relative"><span style="position:absolute;top:10px;right:10px;background:var(--color-primary);color:#fff;font-size:11px;font-weight:700;width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center">荐</span><div class="dish-card__name">黄芪炖鸡（小份）</div><p class="dish-card__window">北苑 · 炖菜窗</p><p class="dish-card__price">¥12</p></article>
+                  </div>
+                </section>
+                <p style="text-align:center"><button type="button" class="el-text-btn" data-go="scenes">去看十大场景</button></p>
+              </div>
+            </div>
+            <button type="button" class="calendar-fab"><span style="font-size:16px">✓</span><span>适合我的</span></button>
+          </div>
+        </div>
+
+        <div class="view" data-view="scenes">
+          <div class="page campus-scenes">
+            <header class="hero">
+              <p class="hero__eyebrow">校园十大场景食疗</p>
+              <h1 class="hero__title">今天，你的身体在经历什么？</h1>
+              <p class="hero__sub">清晨的一杯温水，是唤醒肠胃的序曲。</p>
+              <button type="button" class="hero__cal-link" data-go="calendar">查看本周校园药膳日历</button>
+            </header>
+            <section class="grid-wrap"><div class="grid">
+              <button type="button" class="scene-card" data-go="scenes"><div class="scene-card__inner"><div class="scene-card__top"><span class="scene-card__icon">📚</span><div><h2 class="scene-card__name">考前突击·熬夜救星</h2><p class="scene-card__tagline">为挑灯夜战的你，守护最后一道防线</p></div></div><p class="scene-card__desc">明天就要交作业或考试周，眼干脑胀还爆痘</p><div><span class="chip">眼干眼涩</span><span class="chip">疲劳乏力</span></div><p class="scene-card__week">本周有 3 道相关药膳（示意）</p><div class="scene-card__foot"><span class="scene-card__cta">进入场景详情</span><span class="scene-card__count">4+ 道参考</span></div></div></button>
+              <button type="button" class="scene-card" data-go="scenes"><div class="scene-card__inner"><div class="scene-card__top"><span class="scene-card__icon">🏃‍♀️</span><div><h2 class="scene-card__name">体测来临·能量满格</h2><p class="scene-card__tagline">科学补给，让身体告别体测后遗症</p></div></div><p class="scene-card__desc">800/1000米或力量训练后，肌肉酸胀体力见底</p><div><span class="chip">肌肉酸痛</span></div><p class="scene-card__week">本周有 2 道相关药膳（示意）</p><div class="scene-card__foot"><span class="scene-card__cta">进入场景详情</span><span class="scene-card__count">4+ 道参考</span></div></div></button>
+              <button type="button" class="scene-card" data-go="scenes"><div class="scene-card__inner"><div class="scene-card__top"><span class="scene-card__icon">🍔</span><div><h2 class="scene-card__name">外卖胃·脾胃告急</h2><p class="scene-card__tagline">告别重油重盐，给肠胃放个假</p></div></div><p class="scene-card__desc">重油重盐外卖连轴转，胃胀反酸不消化</p><p class="scene-card__week">本周有 1 道相关药膳（示意）</p><div class="scene-card__foot"><span class="scene-card__cta">进入场景详情</span><span class="scene-card__count">4+ 道参考</span></div></div></button>
+              <button type="button" class="scene-card" data-go="scenes"><div class="scene-card__inner"><div class="scene-card__top"><span class="scene-card__icon">🤧</span><div><h2 class="scene-card__name">换季敏感·免疫防线</h2><p class="scene-card__tagline">换季不慌张，为身体建起防护墙</p></div></div><p class="scene-card__desc">气温忽冷忽热，鼻塞咽痛易感冒</p><p class="scene-card__week">本周有 4 道相关药膳（示意）</p><div class="scene-card__foot"><span class="scene-card__cta">进入场景详情</span><span class="scene-card__count">4+ 道参考</span></div></div></button>
+              <button type="button" class="scene-card" data-go="scenes"><div class="scene-card__inner"><div class="scene-card__top"><span class="scene-card__icon">😫</span><div><h2 class="scene-card__name">鸭梨山大·情绪内耗</h2><p class="scene-card__tagline">疏肝解郁，让坏心情烟消云散</p></div></div><p class="scene-card__desc">论文答辩、实习面试，焦虑胸闷睡不着</p><p class="scene-card__week">本周有 2 道相关药膳（示意）</p><div class="scene-card__foot"><span class="scene-card__cta">进入场景详情</span><span class="scene-card__count">4+ 道参考</span></div></div></button>
+              <button type="button" class="scene-card" data-go="scenes"><div class="scene-card__inner"><div class="scene-card__top"><span class="scene-card__icon">💻</span><div><h2 class="scene-card__name">码字赶Due·屏幕眼</h2><p class="scene-card__tagline">你的电子设备眼，需要一场雨露滋润</p></div></div><p class="scene-card__desc">赶Due盯屏一整天，眼干肩硬还模糊</p><p class="scene-card__week">本周有 3 道相关药膳（示意）</p><div class="scene-card__foot"><span class="scene-card__cta">进入场景详情</span><span class="scene-card__count">4+ 道参考</span></div></div></button>
+              <button type="button" class="scene-card" data-go="scenes"><div class="scene-card__inner"><div class="scene-card__top"><span class="scene-card__icon">🔥</span><div><h2 class="scene-card__name">上火冒痘·炎症风暴</h2><p class="scene-card__tagline">清热降火，和痘痘说拜拜</p></div></div><p class="scene-card__desc">熬夜烧烤后口疮龈肿，脸上痘痘此起彼伏</p><p class="scene-card__week">本周有 2 道相关药膳（示意）</p><div class="scene-card__foot"><span class="scene-card__cta">进入场景详情</span><span class="scene-card__count">4+ 道参考</span></div></div></button>
+              <button type="button" class="scene-card" data-go="scenes"><div class="scene-card__inner"><div class="scene-card__top"><span class="scene-card__icon">🥶</span><div><h2 class="scene-card__name">手脚冰凉·畏寒星人</h2><p class="scene-card__tagline">从内而外暖起来，不做冰美人</p></div></div><p class="scene-card__desc">教室空调冷、四肢不温，生理期更怕冷</p><p class="scene-card__week">本周有 3 道相关药膳（示意）</p><div class="scene-card__foot"><span class="scene-card__cta">进入场景详情</span><span class="scene-card__count">4+ 道参考</span></div></div></button>
+              <button type="button" class="scene-card" data-go="scenes"><div class="scene-card__inner"><div class="scene-card__top"><span class="scene-card__icon">🛌</span><div><h2 class="scene-card__name">彻夜难眠·睡个好觉</h2><p class="scene-card__tagline">安神助眠，愿你一夜好梦</p></div></div><p class="scene-card__desc">躺下脑子停不下来，多梦易醒白天更累</p><p class="scene-card__week">本周有 1 道相关药膳（示意）</p><div class="scene-card__foot"><span class="scene-card__cta">进入场景详情</span><span class="scene-card__count">4+ 道参考</span></div></div></button>
+              <button type="button" class="scene-card" data-go="scenes"><div class="scene-card__inner"><div class="scene-card__top"><span class="scene-card__icon">🏋️</span><div><h2 class="scene-card__name">健康减脂·科学掉秤</h2><p class="scene-card__tagline">吃饱吃好，健康地瘦下来</p></div></div><p class="scene-card__desc">平台期焦虑，怕饿又怕反弹</p><p class="scene-card__week">本周有 2 道相关药膳（示意）</p><div class="scene-card__foot"><span class="scene-card__cta">进入场景详情</span><span class="scene-card__count">4+ 道参考</span></div></div></button>
+            </div></section>
+            <p class="legal">内容仅供健康教育参考，不替代诊疗；体质与用药特殊者请咨询医师。</p>
+          </div>
+        </div>
+
+        <div class="view" data-view="ai">
+          <div class="page ai-page">
+            <div class="compliance-alert"><strong>AI生成内容，仅供养生参考，不替代药物治疗</strong><p style="margin:6px 0 0;font-size:13px;color:var(--color-text-secondary)">不构成医疗诊断或处方；急重症请及时就医。</p></div>
+            <h1 class="page-title">AI 食疗方案</h1>
+            <p class="page-subtitle">用自然语言描述不适或调养目标，与完整前端一致由后端大模型生成 Markdown 方案；此处为静态 UI。</p>
+            <section class="input-panel page-card">
+              <textarea class="symptom-input" placeholder="例如：最近熬夜多，口干、脸上容易长痘，想从饮食上调理……"></textarea>
+              <div style="margin-top:12px"><span style="font-size:13px;color:var(--color-text-secondary)">示例（点击填入）：</span>
+                <button type="button" class="example-chip" onclick="this.closest('.input-panel').querySelector('textarea').value='熬夜多，口干舌燥，脸上长痘'">熬夜多，口干舌燥，脸上长痘</button>
+                <button type="button" class="example-chip" onclick="this.closest('.input-panel').querySelector('textarea').value='易疲劳，气短，不想说话'">易疲劳，气短，不想说话</button>
+              </div>
+              <div class="ai-toolbar"><label style="font-size:14px;display:flex;align-items:center;gap:8px"><input type="checkbox" checked /> 带入我的体质档案（气虚质）</label><button type="button" class="ep-btn ep-btn--primary" style="width:auto;min-height:44px;padding:0 20px">生成方案</button></div>
+            </section>
+            <div class="page-card" style="text-align:center;padding:40px;color:var(--color-text-muted)">填写症状描述后点击「生成方案」</div>
+          </div>
+        </div>
+
+        <div class="view" data-view="profile">
+          <div class="page profile-page">
+            <header class="profile-head page-card">
+              <div><div class="profile-head__label" style="font-size:13px;color:var(--color-text-secondary)">当前体质</div><div class="profile-head__value" style="font-size:20px;font-weight:600">气虚质</div></div>
+              <button type="button" class="ep-btn ep-btn--default" style="width:auto;min-height:36px" data-go="constitution">体质测评</button>
+            </header>
+            <div class="page-card profile-pref" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-lg)">
+              <div><div style="font-weight:600">个性化推荐开关</div><p style="margin:4px 0 0;font-size:13px;color:var(--color-text-secondary)">开启后首页推荐会结合体质与应季食材。</p></div>
+              <span style="width:44px;height:24px;background:var(--color-primary);border-radius:12px;display:inline-block;position:relative"><span style="position:absolute;right:2px;top:2px;width:20px;height:20px;background:#fff;border-radius:50%"></span></span>
+            </div>
+            <div class="page-card tabs-wrap">
+              <div class="profile-tabs-hd"><button type="button" class="is-active" data-tab="fav">收藏列表</button><button type="button" data-tab="hist">浏览历史</button></div>
+              <div id="tab-fav">
+                <h2 style="font-size:17px;margin:0 0 12px">药膳收藏</h2>
+                <div class="fav-row" data-go="recipe"><div class="fav-row__cover">黄</div><div><div class="fav-row__name">黄芪炖鸡</div><div class="fav-row__sub">补气固表</div></div></div>
+              </div>
+              <div id="tab-hist" class="hidden">
+                <h2 style="font-size:15px;color:var(--color-text-secondary);margin:0 0 12px">今天</h2>
+                <div class="fav-row" data-go="recipe"><div class="fav-row__cover">百</div><div><div class="fav-row__name">百合银耳羹 <span class="mini-tag--ok" style="font-size:10px;padding:2px 6px">药膳</span></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view" data-view="settings">
+          <div class="page campus-settings">
+            <header class="page-card" style="margin-bottom:12px"><h1 class="page-title" style="font-size:20px;margin-bottom:8px">设置</h1><p class="page-subtitle" style="margin:0;font-size:13px">通用偏好、账号与数据管理</p></header>
+            <section class="settings-section"><h2 class="settings-section__title">通用设置</h2><div class="van-cells">
+              <div class="van-cell is-link"><span>季节偏好</span><span class="van-cell__value">春季季</span></div>
+              <div class="van-cell"><div><div>个性化推荐</div><span class="van-cell__label">根据体质推荐（合规开关）</span></div><span style="width:40px;height:22px;background:var(--color-primary);border-radius:11px"></span></div>
+              <div class="van-cell is-link"><span>清理缓存</span><span class="van-cell__value">128 KB</span></div>
+              <div class="van-cell is-link"><span>检查更新</span><span class="van-cell__value">v0.0.0</span></div>
+              <div class="van-cell is-link"><div><div>饮食偏好</div><span class="van-cell__label">常去食堂、预算、忌口</span></div></div>
+            </div></section>
+            <section class="settings-section"><h2 class="settings-section__title">账号管理</h2><div class="van-cells">
+              <div class="van-cell is-link"><span>个人资料</span></div>
+              <div class="van-cell is-link"><span>体质管理</span><span class="van-cell__value">气虚质</span></div>
+              <div class="van-cell is-link"><span>修改密码</span></div>
+              <div class="van-cell is-link"><span>账户安全</span></div>
+            </div></section>
+            <div style="margin:24px 16px"><button type="button" class="ep-btn ep-btn--default" style="border-color:#ee0a24;color:#ee0a24;border-radius:999px">退出登录</button><p style="text-align:center;font-size:12px;color:var(--color-text-muted);margin-top:10px">校园药膳推荐 · 静态预览</p></div>
+          </div>
+        </div>
+
+        <div class="view" data-view="constitution">
+          <div class="page constitution-page">
+            <h1 class="page-title">体质采集</h1>
+            <p class="page-subtitle">共 9 题分三组；本页展示与前端一致的「档案摘要」卡片样式。</p>
+            <div class="page-card summary-card">
+              <div class="summary-row"><span class="summary-label">当前体质</span><span class="summary-value">气虚质</span></div>
+              <div class="summary-row"><span class="summary-label">养生季节</span><span class="summary-value">春季</span></div>
+              <p style="margin:0;font-size:13px;color:var(--color-text-secondary)">如需更新测评结果或手动调整画像，可在完整应用中使用下方按钮。</p>
+              <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+                <button type="button" class="ep-btn ep-btn--primary" style="width:auto;min-height:36px">重新测评</button>
+                <button type="button" class="ep-btn ep-btn--default" style="width:auto;min-height:36px">手动调整</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view" data-view="recipe">
+          <div class="recipe-detail">
+            <div class="recipe-detail__bar"><button type="button" class="recipe-back" data-go="home">← 返回</button><h1 class="page-title" style="margin:0;font-size:22px">黄芪炖鸡</h1></div>
+            <div class="page-card" style="margin-bottom:16px"><p style="margin:0 0 8px;font-size:14px;color:var(--color-text-secondary)">补中益气、固表止汗 · 收藏 1280</p><p style="margin:0;font-size:14px;line-height:1.6">补气健脾，适合气虚质同学在考试周调理。</p></div>
+            <div class="page-card"><h2 style="margin:0 0 12px;font-size:16px">用料</h2><ul style="margin:0;padding-left:18px;line-height:1.8;font-size:14px"><li>土鸡 半只（约 600g）</li><li>黄芪 15g（药食同源）</li><li>红枣 6 颗</li><li>生姜 3 片</li></ul></div>
+            <div class="page-card" style="margin-top:16px"><h2 style="margin:0 0 12px;font-size:16px">步骤</h2><ol style="margin:0;padding-left:18px;line-height:1.8;font-size:14px"><li>鸡肉焯水去血沫，黄芪略冲洗。</li><li>砂锅中加清水，放入鸡块、黄芪、红枣、姜片。</li><li>大火煮沸后转小火炖 70–90 分钟，少盐调味即可。</li></ol></div>
+          </div>
+        </div>
+      </main>
+      <nav class="campus-mobile-tabbar" aria-label="底部导航">
+        <div class="campus-mobile-tabbar__inner">
+          <a href="#/home" data-go="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V21H3z"/></svg>首页</a>
+          <a href="#/calendar" data-go="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>日历</a>
+          <a href="#/scenes" data-go="scenes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>场景</a>
+          <a href="#/profile" data-go="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>我的</a>
+        </div>
+      </nav>
+    </div>
+  </div>
+
+  <script>
+    function parseRoute() {
+      var h = (location.hash || '#/entry').replace(/^#\/?/, '').split('?')[0];
+      return h || 'entry';
+    }
+    function render() {
+      var r = parseRoute();
+      var student = ['home','calendar','scenes','ai','profile','settings','constitution','recipe'].indexOf(r) >= 0;
+      document.body.classList.toggle('shell-student', student);
+      document.querySelectorAll('.view').forEach(function (el) {
+        var v = el.getAttribute('data-view');
+        el.classList.toggle('is-active', v === r);
+      });
+      document.querySelectorAll('.nav__item[data-go], .campus-mobile-tabbar a').forEach(function (el) {
+        var g = el.getAttribute('data-go');
+        el.classList.toggle('is-active', g === r);
+      });
+    }
+    window.addEventListener('hashchange', render);
+    document.addEventListener('DOMContentLoaded', function () {
+      document.body.addEventListener('click', function (e) {
+        var t = e.target.closest('[data-go]');
+        if (t && t.getAttribute('data-go')) {
+          e.preventDefault();
+          location.hash = '/' + t.getAttribute('data-go');
+        }
+        var tab = e.target.closest('.profile-tabs-hd [data-tab]');
+        if (tab) {
+          var id = tab.getAttribute('data-tab');
+          document.querySelectorAll('.profile-tabs-hd [data-tab]').forEach(function (b) {
+            b.classList.toggle('is-active', b === tab);
+          });
+          document.getElementById('tab-fav').classList.toggle('hidden', id !== 'fav');
+          document.getElementById('tab-hist').classList.toggle('hidden', id !== 'hist');
+        }
+      });
+      if (!location.hash) location.hash = '/entry';
+      render();
+    });
+  </script>
+</body>
+</html>

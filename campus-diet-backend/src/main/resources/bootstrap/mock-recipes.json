@@ -1,0 +1,1308 @@
+[
+  {
+    "id": "demo-001",
+    "name": "黄芪炖鸡",
+    "summary": "补气健脾，适合气虚质同学在考试周调理。",
+    "effect": "补中益气、固表止汗",
+    "effectTags": [
+      "益气",
+      "健脾",
+      "养胃"
+    ],
+    "suitConstitution": "气虚质",
+    "suitConstitutions": [
+      "气虚质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "spring",
+      "autumn",
+      "winter"
+    ],
+    "collectCount": 1280,
+    "recommendReason": "补气固表，适合气虚易感疲劳的你。",
+    "cookTime": "约 90 分钟",
+    "difficulty": "中等",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "土鸡",
+        "amount": "半只（约 600g）"
+      },
+      {
+        "name": "黄芪",
+        "amount": "15g",
+        "note": "药食同源"
+      },
+      {
+        "name": "红枣",
+        "amount": "6 颗"
+      },
+      {
+        "name": "生姜",
+        "amount": "3 片"
+      }
+    ],
+    "steps": [
+      {
+        "text": "鸡肉焯水去血沫，黄芪略冲洗。"
+      },
+      {
+        "text": "砂锅中加清水，放入鸡块、黄芪、红枣、姜片。"
+      },
+      {
+        "text": "大火煮沸后转小火炖 70–90 分钟，少盐调味即可。",
+        "tip": "体质偏热者黄芪减量或咨询校医。"
+      }
+    ],
+    "symptomTags": [
+      "乏力",
+      "易感冒",
+      "气短",
+      "自汗",
+      "体力透支",
+      "气虚"
+    ],
+    "taboo": "表实邪盛、气滞湿阻、食积内停者慎用；实热证慎用。对鸡肉、黄芪过敏者禁用。"
+  },
+  {
+    "id": "demo-002",
+    "name": "山药薏米粥",
+    "summary": "健脾祛湿，适合痰湿质早餐食用。",
+    "effect": "健脾渗湿、和中益气",
+    "effectTags": [
+      "健脾",
+      "祛湿",
+      "益气"
+    ],
+    "suitConstitution": "痰湿质",
+    "suitConstitutions": [
+      "痰湿质",
+      "湿热质"
+    ],
+    "seasonFit": [
+      "summer",
+      "autumn"
+    ],
+    "collectCount": 956,
+    "recommendReason": "淡渗利湿，帮助化解体内多余水湿。",
+    "cookTime": "约 40 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "铁棍山药",
+        "amount": "100g"
+      },
+      {
+        "name": "薏苡仁",
+        "amount": "40g",
+        "note": "炒制后更温和"
+      },
+      {
+        "name": "大米",
+        "amount": "80g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "薏苡仁可干炒至微黄；山药去皮切小块。"
+      },
+      {
+        "text": "大米淘洗后与薏米一起冷水下锅，煮沸后小火煮 25 分钟。"
+      },
+      {
+        "text": "加入山药块再煮 10–15 分钟至软糯。"
+      }
+    ],
+    "symptomTags": [
+      "便溏",
+      "头身困重",
+      "食欲不振",
+      "油腻",
+      "腹胀",
+      "水肿"
+    ],
+    "taboo": "便秘、溲赤者少用薏米；对山药过敏者禁用。"
+  },
+  {
+    "id": "demo-003",
+    "name": "百合银耳羹",
+    "summary": "养阴润燥，适合熬夜复习的阴虚质同学。",
+    "effect": "养阴润肺、清心安神",
+    "effectTags": [
+      "养阴",
+      "健脾润肺",
+      "安神"
+    ],
+    "suitConstitution": "阴虚质",
+    "suitConstitutions": [
+      "阴虚质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "autumn",
+      "winter"
+    ],
+    "collectCount": 1422,
+    "recommendReason": "润肺生津，缓解秋燥与熬夜后的口干。",
+    "cookTime": "约 50 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "干银耳",
+        "amount": "1 朵（约 12g）"
+      },
+      {
+        "name": "鲜百合",
+        "amount": "30g",
+        "note": "可用干百合替代"
+      },
+      {
+        "name": "冰糖",
+        "amount": "适量"
+      }
+    ],
+    "steps": [
+      {
+        "text": "银耳冷水泡发，去蒂撕小朵。"
+      },
+      {
+        "text": "银耳加水小火慢炖出胶，约 35–45 分钟。"
+      },
+      {
+        "text": "加入百合与冰糖再煮 8–10 分钟。",
+        "tip": "血糖偏高者少糖或用代糖。"
+      }
+    ],
+    "symptomTags": [
+      "口干",
+      "干咳",
+      "失眠",
+      "熬夜",
+      "皮肤干燥",
+      "心烦"
+    ],
+    "taboo": "脾胃虚寒便溏者慎用；风寒咳嗽不宜。糖尿病患者少糖。"
+  },
+  {
+    "id": "demo-004",
+    "name": "莲子芡实猪肚汤",
+    "summary": "健脾养胃，温和补虚。",
+    "effect": "健脾止泻、益肾固精",
+    "effectTags": [
+      "养胃",
+      "健脾",
+      "益气"
+    ],
+    "suitConstitution": "气虚质",
+    "suitConstitutions": [
+      "气虚质",
+      "平和质",
+      "阳虚质"
+    ],
+    "seasonFit": [
+      "autumn",
+      "winter"
+    ],
+    "collectCount": 640,
+    "recommendReason": "温养脾胃，适合换季易腹泻、乏力者。",
+    "cookTime": "约 120 分钟",
+    "difficulty": "中等",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "猪肚",
+        "amount": "半副"
+      },
+      {
+        "name": "莲子",
+        "amount": "30g"
+      },
+      {
+        "name": "芡实",
+        "amount": "20g"
+      },
+      {
+        "name": "生姜",
+        "amount": "5 片"
+      }
+    ],
+    "steps": [
+      {
+        "text": "猪肚洗净焯水，与其余材料同炖至软烂。"
+      }
+    ],
+    "symptomTags": [
+      "腹泻",
+      "便溏",
+      "乏力",
+      "胃胀",
+      "反酸",
+      "食欲不振"
+    ],
+    "taboo": "便秘、腹胀实证者慎用；高尿酸血症者控制动物内脏频次。"
+  },
+  {
+    "id": "demo-005",
+    "name": "菊花枸杞茶",
+    "summary": "清肝明目，适合用眼过度的同学。",
+    "effect": "疏散风热、养肝明目",
+    "effectTags": [
+      "养阴",
+      "安神"
+    ],
+    "suitConstitution": "气郁质",
+    "suitConstitutions": [
+      "气郁质",
+      "阴虚质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "spring",
+      "summer",
+      "autumn"
+    ],
+    "collectCount": 2103,
+    "recommendReason": "应季清润，舒缓情绪与视疲劳。",
+    "cookTime": "约 10 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "杭白菊",
+        "amount": "5g"
+      },
+      {
+        "name": "枸杞子",
+        "amount": "10g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "80℃左右热水冲泡，焖 5 分钟即可。"
+      }
+    ],
+    "symptomTags": [
+      "眼干",
+      "眼涩",
+      "视疲劳",
+      "熬夜",
+      "头痛",
+      "目赤"
+    ],
+    "taboo": "脾胃虚寒易泻者少饮；低血压者慎用菊花大量久服。"
+  },
+  {
+    "id": "demo-006",
+    "name": "冬瓜薏米老鸭汤",
+    "summary": "清热利湿，夏季食堂少见的家常方向。",
+    "effect": "清热利水、滋阴养胃",
+    "effectTags": [
+      "祛湿",
+      "养阴",
+      "养胃"
+    ],
+    "suitConstitution": "湿热质",
+    "suitConstitutions": [
+      "湿热质",
+      "痰湿质"
+    ],
+    "seasonFit": [
+      "summer"
+    ],
+    "collectCount": 887,
+    "recommendReason": "应季清热利湿，适合闷热潮湿天气。",
+    "cookTime": "约 100 分钟",
+    "difficulty": "中等",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "老鸭",
+        "amount": "半只"
+      },
+      {
+        "name": "冬瓜",
+        "amount": "300g"
+      },
+      {
+        "name": "薏苡仁",
+        "amount": "30g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "鸭肉焯水后与薏米同煮，后下冬瓜至透明。"
+      }
+    ],
+    "symptomTags": [
+      "口渴",
+      "暑热",
+      "浮肿",
+      "油腻",
+      "小便不利",
+      "烦躁"
+    ],
+    "taboo": "脾胃虚寒、肾虚腰痛偏寒者慎用；痛经偏寒者少用冬瓜。"
+  },
+  {
+    "id": "demo-007",
+    "name": "当归生姜羊肉汤",
+    "summary": "温阳散寒，冬季温补经典方意。",
+    "effect": "温中补血、散寒止痛",
+    "effectTags": [
+      "益气",
+      "养胃"
+    ],
+    "suitConstitution": "阳虚质",
+    "suitConstitutions": [
+      "阳虚质",
+      "血瘀质"
+    ],
+    "seasonFit": [
+      "winter"
+    ],
+    "collectCount": 734,
+    "recommendReason": "冬季温补气血，驱散寒象。",
+    "cookTime": "约 90 分钟",
+    "difficulty": "中等",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "羊肉",
+        "amount": "500g"
+      },
+      {
+        "name": "当归",
+        "amount": "10g",
+        "note": "药食同源"
+      },
+      {
+        "name": "生姜",
+        "amount": "30g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "羊肉焯水，与当归、生姜小火炖至酥烂。"
+      }
+    ],
+    "symptomTags": [
+      "畏寒",
+      "肢冷",
+      "腹痛",
+      "痛经",
+      "乏力",
+      "腰膝酸软"
+    ],
+    "taboo": "实热证、阴虚火旺、口舌生疮者慎用；孕妇遵医嘱。"
+  },
+  {
+    "id": "demo-008",
+    "name": "陈皮山楂麦芽饮",
+    "summary": "理气消食，饭后胀满可少量尝试。",
+    "effect": "理气健脾、消食化积",
+    "effectTags": [
+      "健脾",
+      "养胃"
+    ],
+    "suitConstitution": "痰湿质",
+    "suitConstitutions": [
+      "痰湿质",
+      "气郁质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "all"
+    ],
+    "collectCount": 512,
+    "recommendReason": "理气化滞，帮助脾胃运化。",
+    "cookTime": "约 20 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "陈皮",
+        "amount": "5g"
+      },
+      {
+        "name": "山楂",
+        "amount": "10g"
+      },
+      {
+        "name": "炒麦芽",
+        "amount": "15g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "材料加水煮沸后小火 15 分钟，代茶饮用。"
+      }
+    ],
+    "symptomTags": [
+      "腹胀",
+      "嗳气",
+      "积食",
+      "食欲不振",
+      "消化不良"
+    ],
+    "taboo": "胃酸过多、消化道溃疡活动期慎用；孕妇麦芽用量遵医嘱。"
+  },
+  {
+    "id": "demo-009",
+    "name": "沙参玉竹瘦肉汤",
+    "summary": "养阴润燥，秋季润肺常用搭配。",
+    "effect": "养阴清肺、生津止渴",
+    "effectTags": [
+      "养阴",
+      "健脾润肺"
+    ],
+    "suitConstitution": "阴虚质",
+    "suitConstitutions": [
+      "阴虚质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "autumn"
+    ],
+    "collectCount": 669,
+    "recommendReason": "秋季润燥，缓解咽干与干咳倾向。",
+    "cookTime": "约 60 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "瘦肉",
+        "amount": "200g"
+      },
+      {
+        "name": "北沙参",
+        "amount": "15g"
+      },
+      {
+        "name": "玉竹",
+        "amount": "15g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "瘦肉切块焯水，与药材同炖 50 分钟。"
+      }
+    ],
+    "symptomTags": [
+      "咽干",
+      "干咳",
+      "口渴",
+      "皮肤干燥",
+      "声嘶"
+    ],
+    "taboo": "脾胃虚寒、便溏者慎用；痰湿壅盛咳嗽不宜单用养阴。"
+  },
+  {
+    "id": "demo-010",
+    "name": "酸枣仁小米粥",
+    "summary": "养心安神，备考季夜宵替代。",
+    "effect": "养心安神、健脾和胃",
+    "effectTags": [
+      "安神",
+      "养胃",
+      "健脾"
+    ],
+    "suitConstitution": "气郁质",
+    "suitConstitutions": [
+      "气郁质",
+      "阴虚质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "autumn",
+      "winter"
+    ],
+    "collectCount": 1205,
+    "recommendReason": "安神助眠，适合压力大、入睡困难者。",
+    "cookTime": "约 35 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "小米",
+        "amount": "80g"
+      },
+      {
+        "name": "酸枣仁",
+        "amount": "10g",
+        "note": "捣碎更易出味"
+      },
+      {
+        "name": "红枣",
+        "amount": "4 颗"
+      }
+    ],
+    "steps": [
+      {
+        "text": "小米煮粥，后下酸枣仁粉与红枣再煮 10 分钟。"
+      }
+    ],
+    "symptomTags": [
+      "失眠",
+      "多梦",
+      "焦虑",
+      "心悸",
+      "入睡困难"
+    ],
+    "taboo": "腹泻便溏者减量；孕妇及哺乳期遵医嘱。"
+  },
+  {
+    "id": "demo-011",
+    "name": "茯苓饼（简化版）",
+    "summary": "健脾渗湿的小点心思路。",
+    "effect": "健脾渗湿、宁心安神",
+    "effectTags": [
+      "健脾",
+      "祛湿",
+      "安神"
+    ],
+    "suitConstitution": "痰湿质",
+    "suitConstitutions": [
+      "痰湿质",
+      "气虚质"
+    ],
+    "seasonFit": [
+      "all"
+    ],
+    "collectCount": 423,
+    "recommendReason": "平和健脾，可作体质调理的日常小食。",
+    "cookTime": "约 45 分钟",
+    "difficulty": "中等",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "茯苓粉",
+        "amount": "30g"
+      },
+      {
+        "name": "糯米粉",
+        "amount": "80g"
+      },
+      {
+        "name": "蜂蜜",
+        "amount": "适量"
+      }
+    ],
+    "steps": [
+      {
+        "text": "粉类混合揉团，小火烙至两面微黄。"
+      }
+    ],
+    "symptomTags": [
+      "体倦",
+      "便溏",
+      "头重",
+      "食欲不振",
+      "痰多"
+    ],
+    "taboo": "肾虚多尿、津液亏耗便秘者慎用；糖尿病患者控制蜂蜜。"
+  },
+  {
+    "id": "demo-012",
+    "name": "五指毛桃煲鸡汤",
+    "summary": "南派「南芪」益气祛湿风味。",
+    "effect": "健脾补肺、行气利湿",
+    "effectTags": [
+      "益气",
+      "祛湿",
+      "健脾润肺"
+    ],
+    "suitConstitution": "气虚质",
+    "suitConstitutions": [
+      "气虚质",
+      "痰湿质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "spring",
+      "summer"
+    ],
+    "collectCount": 998,
+    "recommendReason": "益气不燥，适合气虚兼湿重者。",
+    "cookTime": "约 85 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "鸡",
+        "amount": "半只"
+      },
+      {
+        "name": "五指毛桃",
+        "amount": "40g"
+      },
+      {
+        "name": "茯苓",
+        "amount": "15g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "材料洗净同煲，小火慢炖至汤色清亮。"
+      }
+    ],
+    "symptomTags": [
+      "乏力",
+      "湿气重",
+      "气短",
+      "易困",
+      "肢体沉重"
+    ],
+    "taboo": "实热证慎用；对五指毛桃过敏者禁用。"
+  },
+  {
+    "id": "demo-013",
+    "name": "黑芝麻核桃糊",
+    "summary": "补肝肾、润五脏，早餐冲饮。",
+    "effect": "补肝肾、润肠道",
+    "effectTags": [
+      "养阴",
+      "益气"
+    ],
+    "suitConstitution": "平和质",
+    "suitConstitutions": [
+      "平和质",
+      "阴虚质",
+      "血瘀质"
+    ],
+    "seasonFit": [
+      "autumn",
+      "winter"
+    ],
+    "collectCount": 1560,
+    "recommendReason": "应季润燥，补充优质脂肪与能量。",
+    "cookTime": "约 15 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "黑芝麻",
+        "amount": "30g"
+      },
+      {
+        "name": "核桃仁",
+        "amount": "20g"
+      },
+      {
+        "name": "糯米粉",
+        "amount": "15g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "炒香后打粉，沸水冲搅成糊。"
+      }
+    ],
+    "symptomTags": [
+      "便秘",
+      "脱发",
+      "腰酸",
+      "眼干",
+      "肠燥"
+    ],
+    "taboo": "腹泻便溏者少用；慢性腹泻者慎用。"
+  },
+  {
+    "id": "demo-014",
+    "name": "海带绿豆汤",
+    "summary": "清热利湿，夏季解暑方向。",
+    "effect": "清热化痰、软坚散结",
+    "effectTags": [
+      "祛湿",
+      "养阴"
+    ],
+    "suitConstitution": "湿热质",
+    "suitConstitutions": [
+      "湿热质",
+      "痰湿质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "summer"
+    ],
+    "collectCount": 771,
+    "recommendReason": "应季清热，适合暑热烦渴、出油多者。",
+    "cookTime": "约 40 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "绿豆",
+        "amount": "60g"
+      },
+      {
+        "name": "海带",
+        "amount": "50g"
+      },
+      {
+        "name": "陈皮",
+        "amount": "3g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "绿豆煮至开花，加海带、陈皮再煮 15 分钟。"
+      }
+    ],
+    "symptomTags": [
+      "暑热",
+      "烦渴",
+      "痤疮",
+      "水肿",
+      "小便黄"
+    ],
+    "taboo": "脾胃虚寒易泻者少用绿豆；甲亢碘摄入需控制者慎用海带。"
+  },
+  {
+    "id": "demo-015",
+    "name": "玫瑰花佛手茶",
+    "summary": "疏肝理气，情绪紧绷时饮用。",
+    "effect": "疏肝解郁、理气和胃",
+    "effectTags": [
+      "安神",
+      "养胃"
+    ],
+    "suitConstitution": "气郁质",
+    "suitConstitutions": [
+      "气郁质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "spring",
+      "summer"
+    ],
+    "collectCount": 892,
+    "recommendReason": "疏肝理气，帮助舒缓「气不顺」状态。",
+    "cookTime": "约 8 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "玫瑰花",
+        "amount": "5g"
+      },
+      {
+        "name": "佛手",
+        "amount": "5g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "热水冲泡，焖 5 分钟即可。"
+      }
+    ],
+    "symptomTags": [
+      "胸闷",
+      "胁胀",
+      "情绪抑郁",
+      "嗳气",
+      "压力大"
+    ],
+    "taboo": "阴虚火旺、月经量过多者慎用；孕妇遵医嘱。"
+  },
+  {
+    "id": "demo-016",
+    "name": "南瓜小米粥",
+    "summary": "温和养胃，多数体质可作主食搭配。",
+    "effect": "补中益气、健脾和胃",
+    "effectTags": [
+      "养胃",
+      "健脾",
+      "益气"
+    ],
+    "suitConstitution": "平和质",
+    "suitConstitutions": [
+      "平和质",
+      "气虚质",
+      "阳虚质"
+    ],
+    "seasonFit": [
+      "all"
+    ],
+    "collectCount": 1344,
+    "recommendReason": "应季通用，温和不挑体质的养胃粥。",
+    "cookTime": "约 30 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "小米",
+        "amount": "80g"
+      },
+      {
+        "name": "南瓜",
+        "amount": "150g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "南瓜切丁与小米同煮至绵软。"
+      }
+    ],
+    "symptomTags": [
+      "胃胀",
+      "反酸",
+      "消化不良",
+      "乏力",
+      "食欲不振"
+    ],
+    "taboo": "胃热疼痛、气滞中满者适量；血糖偏高者控制量与搭配。"
+  },
+  {
+    "id": "demo-017",
+    "name": "川贝炖梨",
+    "summary": "润肺化痰，秋燥咳嗽倾向慎用辛辣时选。",
+    "effect": "润肺止咳、化痰平喘",
+    "effectTags": [
+      "健脾润肺",
+      "养阴"
+    ],
+    "suitConstitution": "阴虚质",
+    "suitConstitutions": [
+      "阴虚质",
+      "平和质",
+      "特禀质"
+    ],
+    "seasonFit": [
+      "autumn",
+      "winter"
+    ],
+    "collectCount": 1832,
+    "recommendReason": "润肺止咳，秋季呼吸道易不适者可参考。",
+    "cookTime": "约 40 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "雪梨",
+        "amount": "1 个"
+      },
+      {
+        "name": "川贝母",
+        "amount": "3g",
+        "note": "遵医嘱"
+      },
+      {
+        "name": "冰糖",
+        "amount": "少许"
+      }
+    ],
+    "steps": [
+      {
+        "text": "梨挖核放入川贝与冰糖，隔水炖 35 分钟。"
+      }
+    ],
+    "symptomTags": [
+      "咳嗽",
+      "咽干",
+      "咯痰",
+      "声嘶",
+      "秋燥"
+    ],
+    "taboo": "风寒咳嗽、痰白清稀者不宜；脾胃虚寒便溏者慎用。川贝用量遵医嘱。"
+  },
+  {
+    "id": "demo-018",
+    "name": "韭菜炒虾仁",
+    "summary": "温补肾阳，春季升发之意（适量）。",
+    "effect": "温中行气、补肾助阳",
+    "effectTags": [
+      "益气",
+      "养胃"
+    ],
+    "suitConstitution": "阳虚质",
+    "suitConstitutions": [
+      "阳虚质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "spring"
+    ],
+    "collectCount": 605,
+    "recommendReason": "春季升发温补，适合畏寒肢冷者少量食用。",
+    "cookTime": "约 15 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "韭菜",
+        "amount": "150g"
+      },
+      {
+        "name": "虾仁",
+        "amount": "120g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "大火快炒，少油少盐即可。"
+      }
+    ],
+    "symptomTags": [
+      "畏寒",
+      "肢冷",
+      "腰酸",
+      "乏力",
+      "精力不足"
+    ],
+    "taboo": "阴虚火旺、目疾、疮疡者慎用；痛风急性期少食海鲜。"
+  },
+  {
+    "name": "四神汤",
+    "summary": "以茯苓、山药、莲子、芡实（或薏苡仁）为主的健脾祛湿方意，温和调理脾胃。",
+    "effect": "健脾祛湿、益肾固精",
+    "effectTags": [
+      "健脾",
+      "祛湿",
+      "养胃"
+    ],
+    "suitConstitution": "痰湿质",
+    "suitConstitutions": [
+      "痰湿质",
+      "气虚质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "summer",
+      "autumn"
+    ],
+    "symptomTags": [
+      "食欲不振",
+      "便溏",
+      "乏力",
+      "腹胀"
+    ],
+    "collectCount": 756,
+    "recommendReason": "健脾祛湿，适合便溏、乏力、腹胀等脾虚湿困倾向者。（内容仅供校园健康教育参考，不构成医疗建议。）",
+    "cookTime": "约 90 分钟",
+    "difficulty": "中等",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "茯苓",
+        "amount": "15g",
+        "note": "药食同源"
+      },
+      {
+        "name": "山药",
+        "amount": "30g"
+      },
+      {
+        "name": "莲子",
+        "amount": "20g"
+      },
+      {
+        "name": "芡实",
+        "amount": "20g"
+      },
+      {
+        "name": "猪瘦肉或排骨",
+        "amount": "300g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "药材稍冲洗；肉类焯水去沫。"
+      },
+      {
+        "text": "冷水下锅，大火煮沸后转小火煲 70–90 分钟。"
+      },
+      {
+        "text": "少盐调味即可。",
+        "tip": "便秘、溲赤或实热明显者慎用。"
+      }
+    ],
+    "taboo": "便秘、实热证及急性腹泻发热期慎用；对所含药材过敏者禁用。孕妇请咨询医师。",
+    "id": "demo-019"
+  },
+  {
+    "name": "酸梅汤",
+    "summary": "以乌梅为主料的传统消暑饮品，生津止渴。",
+    "effect": "生津止渴、清热解暑",
+    "effectTags": [
+      "养阴",
+      "清热"
+    ],
+    "suitConstitution": "湿热质",
+    "suitConstitutions": [
+      "湿热质",
+      "阴虚质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "summer"
+    ],
+    "symptomTags": [
+      "口渴",
+      "烦热",
+      "出汗多"
+    ],
+    "collectCount": 1644,
+    "recommendReason": "生津解暑，适合夏季口渴烦热、出汗偏多者少量频饮。（内容仅供校园健康教育参考，不构成医疗建议。）",
+    "cookTime": "约 35 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "乌梅",
+        "amount": "25g"
+      },
+      {
+        "name": "山楂",
+        "amount": "15g"
+      },
+      {
+        "name": "甘草",
+        "amount": "3g",
+        "note": "不宜久服大量"
+      },
+      {
+        "name": "陈皮",
+        "amount": "5g"
+      },
+      {
+        "name": "冰糖",
+        "amount": "适量"
+      }
+    ],
+    "steps": [
+      {
+        "text": "材料（除冰糖）加水浸泡 30 分钟。"
+      },
+      {
+        "text": "煮沸后转小火煮 25 分钟，过滤。"
+      },
+      {
+        "text": "趁热调冰糖，放凉后饮用。",
+        "tip": "胃酸过多、胃溃疡者少饮。"
+      }
+    ],
+    "taboo": "胃酸过多、消化道溃疡活动期慎用；糖尿病患者少糖或代糖并监测血糖。",
+    "id": "demo-020"
+  },
+  {
+    "name": "罗汉果茶",
+    "summary": "罗汉果味甘性凉，传统用于润肺利咽、生津止渴。",
+    "effect": "润肺止咳、生津止渴",
+    "effectTags": [
+      "健脾润肺",
+      "养阴"
+    ],
+    "suitConstitution": "阴虚质",
+    "suitConstitutions": [
+      "阴虚质",
+      "平和质",
+      "湿热质"
+    ],
+    "seasonFit": [
+      "autumn",
+      "summer"
+    ],
+    "symptomTags": [
+      "咽干",
+      "声嘶",
+      "干咳"
+    ],
+    "collectCount": 1320,
+    "recommendReason": "润肺利咽，适合咽干声嘶、秋燥干咳倾向者。（内容仅供校园健康教育参考，不构成医疗建议。）",
+    "cookTime": "约 15 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "罗汉果",
+        "amount": "1/4～1/2 个",
+        "note": "味浓可减量"
+      },
+      {
+        "name": "水",
+        "amount": "500ml"
+      }
+    ],
+    "steps": [
+      {
+        "text": "罗汉果掰碎，冷水下锅煮沸后小火 10 分钟。"
+      },
+      {
+        "text": "代茶分次饮用。",
+        "tip": "便溏者减量。"
+      }
+    ],
+    "taboo": "脾胃虚寒、便溏者不宜多饮；对罗汉果过敏者禁用。",
+    "id": "demo-021"
+  },
+  {
+    "name": "菊花决明子茶",
+    "summary": "菊花配决明子，清肝明目、辅助缓解视疲劳方向。",
+    "effect": "清肝明目、润肠通便",
+    "effectTags": [
+      "清热",
+      "明目"
+    ],
+    "suitConstitution": "阴虚质",
+    "suitConstitutions": [
+      "阴虚质",
+      "气郁质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "spring",
+      "summer",
+      "autumn"
+    ],
+    "symptomTags": [
+      "眼干",
+      "目赤",
+      "视疲劳",
+      "熬夜"
+    ],
+    "collectCount": 980,
+    "recommendReason": "清肝明目，适合熬夜用眼、目干目赤倾向者。（内容仅供校园健康教育参考，不构成医疗建议。）",
+    "cookTime": "约 10 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "杭白菊",
+        "amount": "5g"
+      },
+      {
+        "name": "决明子",
+        "amount": "10g",
+        "note": "炒制后性较平和"
+      }
+    ],
+    "steps": [
+      {
+        "text": "决明子干锅小火清炒至微香（可选）。"
+      },
+      {
+        "text": "与菊花一起用 90℃ 左右热水冲泡，焖 6–8 分钟。"
+      }
+    ],
+    "taboo": "脾胃虚寒易泻者少饮；低血压、腹泻者慎用；孕妇请咨询医师。",
+    "id": "demo-022"
+  },
+  {
+    "name": "荷叶粥",
+    "summary": "荷叶升清降浊、解暑化湿，与粳米煮粥为清淡调理方向。",
+    "effect": "清暑化湿、升发清阳",
+    "effectTags": [
+      "祛湿",
+      "清热"
+    ],
+    "suitConstitution": "痰湿质",
+    "suitConstitutions": [
+      "痰湿质",
+      "湿热质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "summer"
+    ],
+    "symptomTags": [
+      "头重",
+      "油腻",
+      "暑热"
+    ],
+    "collectCount": 610,
+    "recommendReason": "清暑化湿，适合夏季身重、口腻、暑热烦渴者作清淡主食搭配。（内容仅供校园健康教育参考，不构成医疗建议。）",
+    "cookTime": "约 40 分钟",
+    "difficulty": "简单",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "干荷叶",
+        "amount": "6g",
+        "note": "药食同源，宜包煎"
+      },
+      {
+        "name": "粳米",
+        "amount": "100g"
+      }
+    ],
+    "steps": [
+      {
+        "text": "荷叶装入茶包或纱布扎紧。"
+      },
+      {
+        "text": "与粳米同煮至粥稠，取出荷叶包。"
+      },
+      {
+        "text": "可少量盐或配小菜；体寒者减量。"
+      }
+    ],
+    "taboo": "体虚寒凝、胃弱易痛者慎用；孕期请咨询医师。",
+    "id": "demo-023"
+  },
+  {
+    "name": "黑豆核桃猪腰汤",
+    "summary": "黑豆补肾利水，与核桃、猪腰同煮为民间温补方向（适量）。",
+    "effect": "补肾益阴、强腰健骨",
+    "effectTags": [
+      "养阴",
+      "益气"
+    ],
+    "suitConstitution": "阴虚质",
+    "suitConstitutions": [
+      "阴虚质",
+      "血瘀质",
+      "平和质"
+    ],
+    "seasonFit": [
+      "autumn",
+      "winter"
+    ],
+    "symptomTags": [
+      "腰酸",
+      "乏力",
+      "熬夜"
+    ],
+    "collectCount": 540,
+    "recommendReason": "补肾益阴，适合腰酸乏力、熬夜后需温和食补者（控制频次与盐量）。（内容仅供校园健康教育参考，不构成医疗建议。）",
+    "cookTime": "约 100 分钟",
+    "difficulty": "中等",
+    "coverUrl": "",
+    "ingredients": [
+      {
+        "name": "黑豆",
+        "amount": "40g",
+        "note": "提前浸泡 4h 以上"
+      },
+      {
+        "name": "核桃仁",
+        "amount": "20g"
+      },
+      {
+        "name": "猪腰",
+        "amount": "1 副",
+        "note": "处理干净去臊腺"
+      },
+      {
+        "name": "生姜",
+        "amount": "4 片"
+      }
+    ],
+    "steps": [
+      {
+        "text": "黑豆泡发；猪腰切花焯水。"
+      },
+      {
+        "text": "全部材料小火炖 80–100 分钟。"
+      },
+      {
+        "text": "少盐调味。",
+        "tip": "高尿酸血症者控制内脏摄入频次。"
+      }
+    ],
+    "taboo": "高血脂、痛风急性期慎用动物内脏；实热证慎用温补类汤品。",
+    "id": "demo-024"
+  }
+]

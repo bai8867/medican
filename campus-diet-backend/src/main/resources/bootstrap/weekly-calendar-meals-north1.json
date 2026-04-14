@@ -1,0 +1,128 @@
+{
+  "breakfast": [
+    {
+      "recipeId": "9",
+      "name": "山药红枣粥",
+      "window": "药膳粥品窗",
+      "priceYuan": 6,
+      "supplyTimeLabel": "07:00–09:00",
+      "limited": false,
+      "stopped": false,
+      "contraindicationNote": "湿盛中满者酌用",
+      "suitConstitutionLabels": ["气虚质", "痰湿质", "平和质"],
+      "avoidConstitutionLabels": [],
+      "tags": []
+    },
+    {
+      "recipeId": "10",
+      "name": "银耳雪梨汤",
+      "window": "轻养甜品窗",
+      "priceYuan": 8,
+      "supplyTimeLabel": "07:00–08:30",
+      "limited": true,
+      "stopped": false,
+      "contraindicationNote": "风寒咳嗽不宜",
+      "suitConstitutionLabels": ["阴虚质", "痰湿质", "平和质"],
+      "avoidConstitutionLabels": ["阳虚质"],
+      "tags": ["生冷"]
+    }
+  ],
+  "lunch": [
+    {
+      "recipeId": "2",
+      "name": "黄芪炖鸡",
+      "window": "二楼药膳炖品",
+      "priceYuan": 18,
+      "supplyTimeLabel": "11:00–13:00",
+      "limited": true,
+      "stopped": false,
+      "stopReason": "",
+      "contraindicationNote": "实热证慎用",
+      "suitConstitutionLabels": ["气虚质", "阳虚质", "平和质"],
+      "avoidConstitutionLabels": ["湿热质"],
+      "tags": []
+    },
+    {
+      "recipeId": "6",
+      "name": "当归生姜羊肉汤",
+      "window": "二楼药膳炖品",
+      "priceYuan": 22,
+      "supplyTimeLabel": "11:20–12:40",
+      "limited": false,
+      "stopped": false,
+      "contraindicationNote": "湿热体质慎用",
+      "suitConstitutionLabels": ["阳虚质", "血瘀质", "气虚质"],
+      "avoidConstitutionLabels": ["湿热质", "阴虚质"],
+      "tags": []
+    },
+    {
+      "recipeId": "1",
+      "name": "枸杞菊花茶",
+      "window": "一楼例汤窗",
+      "priceYuan": 12,
+      "supplyTimeLabel": "11:00–12:30",
+      "limited": false,
+      "stopped": false,
+      "contraindicationNote": "脾胃虚寒者少饮",
+      "suitConstitutionLabels": ["阴虚质", "气郁质", "平和质"],
+      "avoidConstitutionLabels": [],
+      "tags": []
+    }
+  ],
+  "dinner": [
+    {
+      "recipeId": "5",
+      "name": "绿豆汤",
+      "window": "一楼例汤窗",
+      "priceYuan": 15,
+      "supplyTimeLabel": "17:00–18:30",
+      "limited": false,
+      "stopped": false,
+      "contraindicationNote": "脾胃虚寒不宜多服",
+      "suitConstitutionLabels": ["湿热质", "阴虚质", "平和质"],
+      "avoidConstitutionLabels": ["阳虚质"],
+      "tags": []
+    },
+    {
+      "recipeId": "8",
+      "name": "菊花决明子茶",
+      "window": "二楼药膳炖品",
+      "priceYuan": 26,
+      "supplyTimeLabel": "17:10–19:00",
+      "limited": true,
+      "stopped": false,
+      "contraindicationNote": "低血压、腹泻慎用",
+      "suitConstitutionLabels": ["湿热质", "阴虚质", "平和质"],
+      "avoidConstitutionLabels": ["特禀质"],
+      "tags": ["辛辣"]
+    }
+  ],
+  "midnightSnack": [
+    {
+      "recipeId": "4",
+      "name": "酸枣仁茶",
+      "window": "夜宵轻食窗",
+      "priceYuan": 7,
+      "supplyTimeLabel": "21:00–22:30",
+      "limited": false,
+      "stopped": false,
+      "contraindicationNote": "腹泻者慎用",
+      "suitConstitutionLabels": ["阴虚质", "气郁质", "平和质"],
+      "avoidConstitutionLabels": [],
+      "tags": []
+    },
+    {
+      "recipeId": "7",
+      "name": "红糖姜枣茶",
+      "window": "夜宵轻食窗",
+      "priceYuan": 9,
+      "supplyTimeLabel": "21:00–22:00",
+      "limited": true,
+      "stopped": false,
+      "contraindicationNote": "糖尿病者酌量",
+      "suitConstitutionLabels": ["阳虚质", "血瘀质", "气虚质"],
+      "avoidConstitutionLabels": ["湿热质"],
+      "tags": ["辛辣"]
+    }
+  ]
+}

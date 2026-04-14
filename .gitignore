@@ -1,0 +1,24 @@
+# 本机 JDK / Maven / MariaDB 便携目录（在 D 盘，勿提交）
+dev-tools/
+.devtools/
+medican.zip
+
+# Dependency and build artifacts
+**/node_modules/
+**/dist/
+**/build/
+
+# Python cache
+**/__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Local env / test artifacts
+**/.env
+**/.env.*
+**/.env.local
+**/.env.*.local
+**/playwright-report/
+**/test-results/

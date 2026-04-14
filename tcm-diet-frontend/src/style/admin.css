@@ -1,0 +1,70 @@
+/**
+ * 后台管理端独立视觉：沿用 variables.css 中的语义色与间距变量
+ */
+.admin-root {
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background: var(--color-bg-elevated);
+}
+
+.admin-root .admin-sidebar {
+  background: linear-gradient(
+    180deg,
+    var(--color-primary-dark) 0%,
+    #2d4536 100%
+  );
+  border-right: 1px solid var(--color-border-strong);
+}
+
+.admin-root .admin-sidebar__brand {
+  padding: var(--space-lg) var(--space-md);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: #f5f3ef;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-root .admin-main {
+  background: var(--color-bg-main);
+}
+
+.admin-root .admin-page-card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: var(--space-lg);
+}
+
+.admin-login-page {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background: radial-gradient(
+      circle at 20% 20%,
+      rgba(74, 124, 89, 0.12),
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 80% 60%,
+      rgba(212, 163, 115, 0.14),
+      transparent 40%
+    ),
+    var(--color-bg-main);
+}
+
+.admin-login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--space-xl);
+  background: #fff;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+}

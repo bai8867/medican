@@ -16,10 +16,10 @@
 
 - `spring.datasource.username` 不允许为空，不允许为 `root`
 - `spring.datasource.password` 不允许为空，不允许为 `root`，且不允许使用 `application.yml` 中的占位默认值 `change-this-db-password` 及常见弱口令（与 `ProdSecurityBaselineValidator` 中 `FORBIDDEN_DATASOURCE_PASSWORDS` 对齐）
-- `campus.seed-users.admin-password` 不允许使用 `SeedAdmin#2026!`
-- `campus.seed-users.canteen-password` 不允许使用 `SeedCanteen#2026!`
-- `campus.seed-users.demo-password` 不允许使用 `SeedDemo#2026!`
-- `campus.seed-users.student-password` 不允许使用 `SeedStudent#2026!`
+- `campus.seed-users.admin-password` 不允许使用开发默认值 `admin123`
+- `campus.seed-users.canteen-password` 不允许使用开发默认值 `canteen123`
+- `campus.seed-users.demo-password` 不允许使用开发默认值 `demo123`
+- `campus.seed-users.student-password` 不允许使用开发默认值 `123456`
 
 ### 2.2 密钥与必填配置
 

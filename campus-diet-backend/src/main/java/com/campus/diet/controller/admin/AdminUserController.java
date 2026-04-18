@@ -259,18 +259,20 @@ public class AdminUserController {
     @PutMapping("/{id}")
     public ApiResponse<SysUser> update(@PathVariable long id, @RequestBody UserPatch body) {
         SecurityUtils.requireAdmin();
+        if (body == null) {
+            throw new BizException(400, "缺少请求体");
+        }
         SysUser u = sysUserMapper.selectById(id);
         if (u == null) {
             throw new BizException(404, "用户不存在");
         }
         assertStudentUserManageable(u);
         if (body.getRole() != null) {
-            if (!Roles.USER.equals(body.getRole())
-                    && !Roles.ADMIN.equals(body.getRole())
-                    && !Roles.CANTEEN_MANAGER.equals(body.getRole())) {
-                throw new BizException(400, "非法角色");
+            String nextRole = body.getRole().trim().toUpperCase(Locale.ROOT);
+            if (!Roles.USER.equals(nextRole)) {
+                throw new BizException(400, "学生用户管理接口不允许变更角色");
             }
-            u.setRole(body.getRole());
+            u.setRole(Roles.USER);
         }
         if (body.getStatus() != null) {
             u.setStatus(body.getStatus());

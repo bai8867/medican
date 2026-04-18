@@ -21,6 +21,10 @@ function pathnameIs(u, path) {
   }
 }
 
+function isHomeOrRecommend(u) {
+  return pathnameIs(u, '/home') || pathnameIs(u, '/recommend')
+}
+
 /** @param {import('@playwright/test').Page} page */
 async function clearSiteData(page) {
   await page.context().clearCookies()
@@ -50,20 +54,20 @@ async function loginFromMode(page) {
   await expect(page).toHaveURL(/\/campus\/login/)
   await expect(page.getByRole('heading', { name: '校园端登录' })).toBeVisible()
 
-  await page.getByPlaceholder('例如 student').fill('playwright-student')
-  await page.getByPlaceholder('例如 123456').fill('123456')
+  await page.getByPlaceholder('例如 student').fill('demo')
+  await page.getByLabel('密码').fill('demo123')
   await page.getByRole('button', { name: '登录' }).click()
-  await page.waitForURL(/\/(recommend|constitution)$/, { timeout: 10_000 })
+  await page.waitForURL(/\/(home|recommend|constitution)$/, { timeout: 10_000 })
   log('登录后 URL', page.url())
 }
 
 /**
- * 完成 9 题问卷（每组任选第一档分值）
+ * 完成分组问卷（每组任选第一档分值）
  * @param {import('@playwright/test').Page} page
  */
 async function completeNineQuestionSurvey(page) {
   await expect(page.getByRole('heading', { name: '体质采集' })).toBeVisible()
-  for (let round = 0; round < 3; round += 1) {
+  for (let round = 0; round < 10; round += 1) {
     const blocks = page.locator('.question-block')
     const n = await blocks.count()
     expect(n).toBeGreaterThan(0)
@@ -71,8 +75,12 @@ async function completeNineQuestionSurvey(page) {
       /** Element Plus：点 label 可视区，避免 hidden input 被 inner 遮挡 */
       await blocks.nth(i).locator('.score-radio').first().click()
     }
-    const btnLabel = round < 2 ? '下一组' : '提交并查看结果'
-    await page.getByRole('button', { name: btnLabel }).click()
+    const submitBtn = page.getByRole('button', { name: '提交并查看结果' })
+    if (await submitBtn.isVisible().catch(() => false)) {
+      await submitBtn.click()
+      break
+    }
+    await page.getByRole('button', { name: '下一组' }).click()
   }
   await expect(page.getByRole('button', { name: '确认并保存，进入首页' })).toBeVisible()
   await expect(page.getByText(/您的体质：/)).toBeVisible()
@@ -107,7 +115,7 @@ test('S2：体质采集 → 首页（提交问卷）', async ({ page }) => {
   await completeNineQuestionSurvey(page)
 
   await page.getByRole('button', { name: '确认并保存，进入首页' }).click()
-  await expect(page).toHaveURL(/\/recommend$/)
+  await expect.poll(() => isHomeOrRecommend(page.url()), { timeout: 15_000 }).toBeTruthy()
   await expect(page.locator('.recommend')).toBeVisible()
   await expect(page.getByText(/体质 · /)).toBeVisible()
   await expect(page.locator('article.card').first()).toBeVisible()
@@ -118,14 +126,14 @@ test('S1：首页 → 体质采集 → 后退', async ({ page }) => {
   if (page.url().includes('/constitution')) {
     await page.getByRole('button', { name: '跳过测评' }).click()
   }
-  await expect(page).toHaveURL(/\/recommend$/)
+  await expect.poll(() => isHomeOrRecommend(page.url()), { timeout: 15_000 }).toBeTruthy()
 
   await page.getByRole('button', { name: '修改' }).click()
   await expect(page).toHaveURL(/\/constitution$/)
   await expect(page.getByRole('heading', { name: '体质采集' })).toBeVisible()
 
   await page.goBack()
-  await expect(page).toHaveURL(/\/recommend$/)
+  await expect.poll(() => isHomeOrRecommend(page.url()), { timeout: 15_000 }).toBeTruthy()
   await expect(page.locator('article.card').first()).toBeVisible()
 })
 
@@ -134,7 +142,7 @@ test('S3：首页 → 菜谱详情 → 返回 → 刷新', async ({ page }) => {
   if (page.url().includes('/constitution')) {
     await page.getByRole('button', { name: '跳过测评' }).click()
   }
-  await expect(page).toHaveURL(/\/recommend$/)
+  await expect.poll(() => isHomeOrRecommend(page.url()), { timeout: 15_000 }).toBeTruthy()
 
   const firstCard = page.locator('article.card').first()
   await expect(firstCard).toBeVisible()
@@ -146,7 +154,7 @@ test('S3：首页 → 菜谱详情 → 返回 → 刷新', async ({ page }) => {
   await expect(page.locator('.top-nav__title')).toContainText(title)
 
   await page.getByRole('button', { name: '返回' }).click()
-  await expect(page).toHaveURL(/\/recommend$/)
+  await expect.poll(() => isHomeOrRecommend(page.url()), { timeout: 15_000 }).toBeTruthy()
   await expect(page.locator('article.card').first()).toBeVisible()
 
   await page.locator('article.card').first().click()
@@ -160,7 +168,7 @@ test('S4：首页 → AI 生成 → 食疗方 → 后退', async ({ page }) => {
   if (page.url().includes('/constitution')) {
     await page.getByRole('button', { name: '跳过测评' }).click()
   }
-  await expect(page).toHaveURL(/\/recommend$/)
+  await expect.poll(() => isHomeOrRecommend(page.url()), { timeout: 15_000 }).toBeTruthy()
 
   await page.locator('.ai-tile').first().click()
   await expect(page).toHaveURL((u) => pathnameIs(u, '/ai'))
@@ -186,14 +194,14 @@ test('S5：我的 → 收藏 / 历史', async ({ page }) => {
   if (page.url().includes('/constitution')) {
     await page.getByRole('button', { name: '跳过测评' }).click()
   }
-  await expect(page).toHaveURL(/\/recommend$/)
+  await expect.poll(() => isHomeOrRecommend(page.url()), { timeout: 15_000 }).toBeTruthy()
 
   await page.locator('article.card').first().click()
   await expect(page).toHaveURL(/\/recipe\/[^/]+$/)
   await page.locator('.top-nav__fav').click()
 
   await page.getByRole('button', { name: '返回' }).click()
-  await expect(page).toHaveURL(/\/recommend$/)
+  await expect.poll(() => isHomeOrRecommend(page.url()), { timeout: 15_000 }).toBeTruthy()
 
   await page.getByRole('button', { name: '进入我的页面' }).click()
   await expect(page).toHaveURL(/\/profile$/)
@@ -222,14 +230,14 @@ test('S5：我的 → 收藏 / 历史', async ({ page }) => {
 test('S6：历史栈后退 / 前进', async ({ page }) => {
   await page.goto('/mode')
   await page.getByRole('button', { name: /学生端|校园端/ }).click()
-  await page.getByPlaceholder('例如 student').fill('playwright-history')
-  await page.getByPlaceholder('例如 123456').fill('123456')
+  await page.getByPlaceholder('例如 student').fill('demo')
+  await page.getByLabel('密码').fill('demo123')
   await page.getByRole('button', { name: '登录' }).click()
-  await page.waitForURL(/\/(recommend|constitution)$/, { timeout: 10_000 })
+  await page.waitForURL(/\/(home|recommend|constitution)$/, { timeout: 10_000 })
 
   if (page.url().includes('/constitution')) {
     await page.getByRole('button', { name: '跳过测评' }).click()
-    await expect(page).toHaveURL(/\/recommend$/)
+    await expect.poll(() => isHomeOrRecommend(page.url()), { timeout: 15_000 }).toBeTruthy()
   }
 
   await page.locator('article.card').first().click()
@@ -246,10 +254,16 @@ test('S6：历史栈后退 / 前进', async ({ page }) => {
    * /mode → /constitution → /recommend → /recipe/… → /profile → /ai
    * 自 AI 起连续 5 次后退应回到 /mode，再 5 次前进回到 /ai
    */
-  const backPatterns = [/\/profile$/, /\/recipe\//, /\/recommend$/, /\/constitution$/, /\/mode$/]
+  const backPatterns = [
+    (u) => pathnameIs(u, '/profile'),
+    (u) => /\/recipe\//.test(new URL(typeof u === 'string' ? u : String(u)).pathname),
+    (u) => isHomeOrRecommend(u),
+    (u) => pathnameIs(u, '/constitution'),
+    (u) => pathnameIs(u, '/mode'),
+  ]
   for (let i = 0; i < backPatterns.length; i += 1) {
     await page.goBack()
-    await expect(page).toHaveURL(backPatterns[i])
+    await expect.poll(() => backPatterns[i](page.url()), { timeout: 15_000 }).toBeTruthy()
     log(`后退 ${i + 1} →`, page.url())
   }
 
@@ -263,18 +277,30 @@ test('S6：历史栈后退 / 前进', async ({ page }) => {
   }
   if (!pathnameIs(page.url(), '/ai')) {
     log('前进栈无法还原 /ai，补登后进入 AI（受 replace 路由限制，前进栈在浏览器中不可靠）')
+    await page.goto('/mode', { waitUntil: 'domcontentloaded' })
+    await page.evaluate(() => {
+      sessionStorage.setItem('tcm_portal_campus_ok', '1')
+    })
     await page.goto('/campus/login', { waitUntil: 'domcontentloaded' })
-    await page.getByPlaceholder('例如 student').fill('playwright-history-fwd')
-    await page.getByPlaceholder('例如 123456').fill('123456')
+    await page.getByPlaceholder('例如 student').fill('demo')
+    await page.getByLabel('密码').fill('demo123')
     await page.getByRole('button', { name: '登录' }).click()
     await expect
-      .poll(() => pathnameIs(page.url(), '/recommend') || pathnameIs(page.url(), '/constitution'), {
+      .poll(
+        () =>
+          pathnameIs(page.url(), '/home') ||
+          pathnameIs(page.url(), '/recommend') ||
+          pathnameIs(page.url(), '/constitution'),
+        {
         timeout: 30_000,
-      })
+        },
+      )
       .toBeTruthy()
     if (page.url().includes('/constitution')) {
       await page.getByRole('button', { name: '跳过测评' }).click()
-      await expect.poll(() => pathnameIs(page.url(), '/recommend'), { timeout: 15_000 }).toBeTruthy()
+      await expect
+        .poll(() => pathnameIs(page.url(), '/home') || pathnameIs(page.url(), '/recommend'), { timeout: 15_000 })
+        .toBeTruthy()
     }
     await page.goto('/ai', { waitUntil: 'domcontentloaded' })
   }

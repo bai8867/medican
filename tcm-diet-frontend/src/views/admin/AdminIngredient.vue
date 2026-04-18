@@ -6,10 +6,13 @@ import {
   createIngredient,
   updateIngredient,
   deleteIngredient,
-} from '@/api/ingredient.js'
+} from '@/api/ingredient'
 
 const loading = ref(false)
 const rows = ref([])
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(10)
 
 const dialogVisible = ref(false)
 const dialogTitle = ref('新增食材')
@@ -21,26 +24,8 @@ const form = reactive({
   enabled: true,
 })
 
-function validateNameUnique(_rule, value, callback) {
-  const n = String(value ?? '').trim()
-  if (!n) {
-    callback()
-    return
-  }
-  const dup = rows.value.some(
-    (r) =>
-      String(r.name || '').trim() === n &&
-      (editingId.value == null || Number(r.id) !== Number(editingId.value)),
-  )
-  if (dup) callback(new Error('食材名称已存在，请更换名称'))
-  else callback()
-}
-
 const rules = {
-  name: [
-    { required: true, message: '请输入食材名称', trigger: 'blur' },
-    { validator: validateNameUnique, trigger: 'blur' },
-  ],
+  name: [{ required: true, message: '请输入食材名称', trigger: 'blur' }],
   efficacySummary: [
     { required: true, message: '请输入功效简介', trigger: 'blur' },
   ],
@@ -48,13 +33,35 @@ const rules = {
 
 const formRef = ref(null)
 
+const filters = reactive({
+  keyword: '',
+  /** '' | '1' | '0' → 全部 / 仅启用 / 仅禁用 */
+  enabled: '',
+})
+
 async function load() {
   loading.value = true
   try {
-    const data = await fetchIngredientList()
+    const kw = String(filters.keyword ?? '').trim()
+    const enabledParam =
+      filters.enabled === '1' ? true : filters.enabled === '0' ? false : undefined
+    const data = await fetchIngredientList({
+      page: page.value,
+      page_size: pageSize.value,
+      ...(kw ? { keyword: kw } : {}),
+      ...(enabledParam !== undefined ? { enabled: enabledParam } : {}),
+    })
+    const tot = Number(data?.total) || 0
+    const maxPage = Math.max(1, Math.ceil(tot / pageSize.value) || 1)
+    if (page.value > maxPage) {
+      page.value = maxPage
+      return load()
+    }
+    total.value = tot
     rows.value = data?.records || data?.list || []
   } catch (e) {
     rows.value = []
+    total.value = 0
     ElMessage.error(e?.message || e?.msg || '食材列表加载失败')
   } finally {
     loading.value = false
@@ -125,6 +132,23 @@ async function onDelete(row) {
   }
 }
 
+function onSearch() {
+  page.value = 1
+  load()
+}
+
+function onReset() {
+  filters.keyword = ''
+  filters.enabled = ''
+  page.value = 1
+  load()
+}
+
+function onPageSizeChange() {
+  page.value = 1
+  load()
+}
+
 onMounted(load)
 </script>
 
@@ -134,6 +158,37 @@ onMounted(load)
     <p class="admin-ing__intro">
       维护药食同源食材库：名称全局唯一；禁用后不会在药膳表单的食材下拉中出现。
     </p>
+
+    <div class="admin-page-card admin-ing__filter">
+      <el-form :model="filters" label-width="88px" @submit.prevent="onSearch">
+        <el-row :gutter="16">
+          <el-col :xs="24" :sm="12" :md="8">
+            <el-form-item label="关键词">
+              <el-input
+                v-model="filters.keyword"
+                clearable
+                placeholder="按名称或功效简介筛选"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="6">
+            <el-form-item label="状态">
+              <el-select v-model="filters.enabled" clearable placeholder="全部" style="width: 100%">
+                <el-option label="全部" value="" />
+                <el-option label="仅启用" value="1" />
+                <el-option label="仅禁用" value="0" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="24" :md="10">
+            <el-form-item label-width="0" class="admin-ing__filter-actions">
+              <el-button type="primary" @click="onSearch">查询</el-button>
+              <el-button @click="onReset">重置</el-button>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+    </div>
 
     <div class="admin-page-card admin-ing__toolbar">
       <el-button type="primary" @click="openCreate">新增食材</el-button>
@@ -162,6 +217,18 @@ onMounted(load)
           </template>
         </el-table-column>
       </el-table>
+      <div class="admin-ing__pager">
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next"
+          :total="total"
+          background
+          @current-change="load"
+          @size-change="onPageSizeChange"
+        />
+      </div>
     </div>
 
     <el-dialog
@@ -212,10 +279,33 @@ onMounted(load)
   max-width: 720px;
 }
 
+.admin-ing__filter {
+  margin-bottom: var(--space-lg);
+}
+
+.admin-ing__filter-actions :deep(.el-form-item__content) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: flex-start;
+}
+
+@media (min-width: 768px) {
+  .admin-ing__filter-actions :deep(.el-form-item__content) {
+    justify-content: flex-end;
+  }
+}
+
 .admin-ing__toolbar {
   margin-bottom: var(--space-lg);
   display: flex;
   justify-content: flex-end;
+}
+
+.admin-ing__pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-md);
 }
 
 .admin-ing__brief {

@@ -2,7 +2,10 @@ SET NAMES utf8mb4;
 
 INSERT IGNORE INTO `system_kv` (`k`, `v`) VALUES
 ('recommend.global.enabled', '1'),
-('ai.generation.enabled', '1');
+('ai.generation.enabled', '1'),
+('ai.quality.guard.enabled', '1'),
+('ai.quality.safety.strict', '1'),
+('ai.quality.score.threshold', '75');
 
 INSERT IGNORE INTO `campus_canteen` (`id`, `campus_name`, `display_name`, `sort_order`) VALUES
 ('north-1', '主校区', '北苑一食堂 · 药膳档', 1),

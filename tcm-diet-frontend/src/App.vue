@@ -6,7 +6,7 @@ import CampusMobileTabbar from '@/components/campus/CampusMobileTabbar.vue'
 import {
   maybeProbeCampusAccountStatus,
   notifyCampusTabForeground,
-} from '@/utils/campusAccountProbe.js'
+} from '@/utils/campusAccountProbe'
 
 const route = useRoute()
 const isAdminRoute = computed(

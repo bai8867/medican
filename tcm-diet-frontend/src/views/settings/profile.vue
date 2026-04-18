@@ -1,21 +1,35 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast, NavBar as VanNavBar, CellGroup as VanCellGroup, Field as VanField, Button as VanButton, Image as VanImage } from 'vant'
-import { useUserStore } from '@/stores/user'
+import {
+  NavBar as VanNavBar,
+  CellGroup as VanCellGroup,
+  Cell as VanCell,
+  Field as VanField,
+  Button as VanButton,
+  showToast,
+} from 'vant'
+import { useUserStore, CONSTITUTION_TYPES } from '@/stores/user'
 import { updateProfileBasics } from '@/api/userSettings'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-const nickname = ref('')
-const saving = ref(false)
+const nickname = ref(String(userStore.username || '').trim())
 
-const avatarUrl = computed(() => (userStore.avatar || '').trim())
+watch(
+  () => userStore.username,
+  (v) => {
+    nickname.value = String(v || '').trim()
+  },
+)
 
-onMounted(() => {
-  nickname.value = (userStore.username || '').trim()
+const constitutionName = computed(() => {
+  const hit = CONSTITUTION_TYPES.find((c) => c.code === userStore.constitutionCode)
+  return hit?.label || '未设置'
 })
+
+const saving = ref(false)
 
 async function onSave() {
   const name = nickname.value.trim()
@@ -27,9 +41,9 @@ async function onSave() {
   try {
     await updateProfileBasics({ username: name })
     userStore.$patch({ username: name })
-    showToast('已保存')
+    showToast('已保存（本机展示）')
   } catch {
-    /* 拦截器已提示 */
+    showToast('保存失败')
   } finally {
     saving.value = false
   }
@@ -37,34 +51,16 @@ async function onSave() {
 </script>
 
 <template>
-  <div class="settings-sub">
+  <div class="settings-sub settings-sub--scroll">
     <van-nav-bar title="个人资料" left-arrow fixed placeholder @click-left="router.back()" />
-    <div class="settings-sub__body">
-      <div class="avatar-block">
-        <p class="avatar-block__label">头像（V1.0 仅展示）</p>
-        <van-image
-          v-if="avatarUrl"
-          round
-          width="88"
-          height="88"
-          fit="cover"
-          :src="avatarUrl"
-        />
-        <div v-else class="avatar-block__placeholder" aria-hidden="true">
-          {{ nickname.slice(0, 1) || '用' }}
-        </div>
-      </div>
+    <div class="body">
+      <p class="hint">昵称仅影响本机展示；账号与体质等仍以服务端与画像数据为准。</p>
       <van-cell-group inset>
-        <van-field v-model="nickname" label="昵称" placeholder="请输入昵称" maxlength="24" />
+        <van-field v-model="nickname" label="昵称" placeholder="请输入昵称" maxlength="32" clearable />
+        <van-cell title="用户 ID" :value="userStore.userId || '—'" />
+        <van-cell title="体质" :value="constitutionName" is-link @click="router.push('/constitution')" />
       </van-cell-group>
-      <van-button
-        type="primary"
-        block
-        round
-        class="save-btn"
-        :loading="saving"
-        @click="onSave"
-      >
+      <van-button type="primary" block round class="save-btn" :loading="saving" @click="onSave">
         保存
       </van-button>
     </div>
@@ -72,36 +68,18 @@ async function onSave() {
 </template>
 
 <style scoped>
-.settings-sub__body {
-  padding: 16px;
+.body {
+  padding-bottom: 24px;
 }
 
-.avatar-block {
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.avatar-block__label {
-  margin: 0 0 12px;
+.hint {
+  margin: 12px 16px;
   font-size: 13px;
   color: var(--color-text-secondary);
-}
-
-.avatar-block__placeholder {
-  width: 88px;
-  height: 88px;
-  margin: 0 auto;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ecfdf5, #d8f3dc);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  font-weight: 700;
-  color: #2d6a4f;
+  line-height: 1.5;
 }
 
 .save-btn {
-  margin-top: 24px;
+  margin: 20px 16px 0;
 }
 </style>

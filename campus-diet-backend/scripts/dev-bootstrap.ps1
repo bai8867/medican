@@ -34,13 +34,27 @@ if (Test-Path $JdkHome) {
     $env:JAVA_HOME = $JdkHome
     $env:Path = "$JdkHome\bin;$env:Path"
 } else {
-    Write-Warning "未找到 JDK 11: $JdkHome ，请安装 EclipseAdoptium.Temurin.11.JDK 或设置 `$JdkHome"
+    $msJdkRoot = "C:\Program Files\Microsoft"
+    $wingetJdk11 = $null
+    if (Test-Path $msJdkRoot) {
+        $wingetJdk11 = (Get-ChildItem $msJdkRoot -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like "jdk-11.*" } |
+            Sort-Object Name -Descending |
+            Select-Object -First 1).FullName
+    }
+    if ($wingetJdk11 -and (Test-Path $wingetJdk11)) {
+        $env:JAVA_HOME = $wingetJdk11
+        $env:Path = "$wingetJdk11\bin;$env:Path"
+        Write-Host "使用本机 JDK 11: $wingetJdk11"
+    } else {
+        Write-Warning "未找到 JDK 11: $JdkHome （也未在 $msJdkRoot 下找到 jdk-11.*）。请安装 JDK 11 或设置 -JdkHome"
+    }
 }
 
 if (Test-Path "$MavenHome\bin\mvn.cmd") {
     $env:Path = "$MavenHome\bin;$env:Path"
 } else {
-    Write-Warning "未找到 Maven: $MavenHome ，请解压 apache-maven-*-bin.zip 到 `$MavenHome 或调整参数"
+    Write-Warning "未找到 Maven: $MavenHome 。将尝试使用仓库内 mvnw.cmd（需已设置 JAVA_HOME 为 JDK 11）"
 }
 
 $mysqld = Join-Path $MariaDbHome "bin\mysqld.exe"
@@ -64,8 +78,15 @@ if (-not $SkipBuild) {
     $backendRoot = Split-Path $PSScriptRoot -Parent
     Push-Location $backendRoot
     try {
-        Write-Host "Maven package..."
-        mvn -DskipTests package -B -q
+        if (Get-Command mvn -ErrorAction SilentlyContinue) {
+            Write-Host "Maven package (mvn)..."
+            mvn -DskipTests package -B -q
+        } elseif (Test-Path (Join-Path $backendRoot "mvnw.cmd")) {
+            Write-Host "Maven package (mvnw.cmd)..."
+            & (Join-Path $backendRoot "mvnw.cmd") -DskipTests package -B -q
+        } else {
+            throw "未找到 mvn 与 mvnw.cmd，无法编译。请安装 Maven 或从仓库根目录拉取 Maven Wrapper 文件。"
+        }
     } finally {
         Pop-Location
     }

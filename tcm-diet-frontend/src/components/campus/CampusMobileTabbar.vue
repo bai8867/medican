@@ -47,12 +47,21 @@ const showBar = computed(
     display: block;
   }
 
+  :deep(.van-tabbar) {
+    border-top: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-bg-elevated) 86%, transparent);
+    box-shadow: 0 -10px 30px rgba(44, 44, 42, 0.06);
+    backdrop-filter: blur(12px) saturate(140%);
+  }
+
   :deep(.van-tabbar-item) {
     color: var(--color-text-secondary);
+    transition: color var(--duration-fast) var(--ease-out);
   }
 
   :deep(.van-tabbar-item--active) {
     color: var(--color-primary);
+    font-weight: 600;
   }
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { HomeFilled, Management } from '@element-plus/icons-vue'
+import { Button as VanButton } from 'vant'
 import { useUserStore } from '@/stores/user'
 import {
   clearPortalGateFlags,
@@ -9,7 +9,7 @@ import {
   setPortalAdminOk,
   takeCampusRedirectPending,
   takeAdminRedirectPending,
-} from '@/utils/portalGate.js'
+} from '@/utils/portalGate'
 import '@/style/admin.css'
 
 const router = useRouter()
@@ -49,18 +49,18 @@ function goAdmin() {
       <h1 class="entry-select__title">校园药膳推荐系统</h1>
       <p class="entry-select__hint">请选择进入模式</p>
       <div class="entry-select__actions">
-        <el-button type="primary" size="large" class="entry-select__btn" @click="goCampus">
+        <van-button type="primary" size="large" block class="entry-select__btn" @click="goCampus">
           <span class="entry-select__btn-inner">
-            <el-icon class="entry-select__icon"><HomeFilled /></el-icon>
+            <span class="entry-select__glyph" aria-hidden="true">⌂</span>
             <span class="entry-select__label">学生端 · 校园端（推荐 / 体质 / AI）</span>
           </span>
-        </el-button>
-        <el-button size="large" class="entry-select__btn" @click="goAdmin">
+        </van-button>
+        <van-button type="default" size="large" block class="entry-select__btn entry-select__btn--secondary" @click="goAdmin">
           <span class="entry-select__btn-inner">
-            <el-icon class="entry-select__icon"><Management /></el-icon>
+            <span class="entry-select__glyph" aria-hidden="true">⚙</span>
             <span class="entry-select__label">后台管理</span>
           </span>
-        </el-button>
+        </van-button>
       </div>
       <p class="entry-select__sub">
         须在本页选择进入方式：直接打开或收藏内页、登录页地址将无法绕过此步骤。后台需具备权限的账号。
@@ -96,7 +96,7 @@ function goAdmin() {
   gap: var(--space-sm);
 }
 
-.entry-select__actions :deep(.entry-select__btn.el-button) {
+.entry-select__actions :deep(.entry-select__btn.van-button) {
   width: 100%;
   margin: 0;
   min-height: 48px;
@@ -106,7 +106,6 @@ function goAdmin() {
   padding-right: 18px;
 }
 
-/* 默认插槽外层 span，占满按钮内宽以便栅格对齐 */
 .entry-select__actions :deep(.entry-select__btn > span) {
   flex: 1;
   min-width: 0;
@@ -122,10 +121,12 @@ function goAdmin() {
   box-sizing: border-box;
 }
 
-.entry-select__icon {
+.entry-select__glyph {
   margin: 0;
   font-size: 18px;
+  line-height: 1;
   justify-self: center;
+  opacity: 0.9;
 }
 
 .entry-select__label {

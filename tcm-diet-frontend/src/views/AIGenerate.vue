@@ -1,13 +1,18 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { MagicStick, Star, StarFilled, RefreshRight, Select, CloseBold } from '@element-plus/icons-vue'
+import {
+  showToast,
+  Field as VanField,
+  Checkbox as VanCheckbox,
+  Button as VanButton,
+  Empty as VanEmpty,
+} from 'vant'
 import AiTherapyPlanView from '@/components/ai/AiTherapyPlanView.vue'
 import { useUserStore } from '@/stores/user'
 import { useAiPlanStore } from '@/stores/aiPlan'
-import { generateAiTherapyPlan, submitAiPlanFeedback } from '@/api/ai.js'
-import { normalizeAiTherapyPlanData } from '@/mocks/aiTherapyPlanResponse.js'
+import { generateAiTherapyPlan, submitAiPlanFeedback } from '@/api/ai'
+import { normalizeAiTherapyPlanData } from '@/mocks/aiTherapyPlanResponse'
 
 const GENERIC_PLAN_MESSAGE = '症状表述不够清晰，为您推荐通用养生方案'
 const FALLBACK_PLAN_MESSAGE =
@@ -50,13 +55,9 @@ const examples = [
   '手脚发凉，怕冷，食欲不振',
 ]
 
-const canUseConstitution = computed(
-  () => Boolean(userStore.constitutionCode),
-)
+const canUseConstitution = computed(() => Boolean(userStore.constitutionCode))
 
-const isSaved = computed(() =>
-  plan.value ? aiPlanStore.isPlanSaved(plan.value.planId) : false,
-)
+const isSaved = computed(() => (plan.value ? aiPlanStore.isPlanSaved(plan.value.planId) : false))
 
 function fillExample(text) {
   symptom.value = text
@@ -149,8 +150,7 @@ function applyRecipeEntryQuery() {
 
 onMounted(() => {
   const q = route.query
-  const hasSceneCtx =
-    typeof q.scene_context === 'string' && String(q.scene_context).trim() !== ''
+  const hasSceneCtx = typeof q.scene_context === 'string' && String(q.scene_context).trim() !== ''
   if (!hasSceneCtx) loadAiPageDraft()
   applyRecipeEntryQuery()
 })
@@ -167,7 +167,7 @@ watch(
 async function onGenerate() {
   const text = symptom.value.trim()
   if (!text) {
-    ElMessage.warning('请输入你的不适症状')
+    showToast({ type: 'warning', message: '请输入你的不适症状' })
     return
   }
 
@@ -177,9 +177,7 @@ async function onGenerate() {
   const payload = {
     symptom: text,
     constitution:
-      includeConstitution.value && userStore.constitutionCode
-        ? userStore.constitutionCode
-        : undefined,
+      includeConstitution.value && userStore.constitutionCode ? userStore.constitutionCode : undefined,
   }
 
   const uiDelay = aiGenerateUiDelayMs()
@@ -192,12 +190,16 @@ async function onGenerate() {
     if (normalized.isGenericPlan) {
       const sym = (payload.symptom || '').trim()
       const shortSymptom = sym.length > 0 && sym.length < 4
-      ElMessage.info(shortSymptom ? GENERIC_PLAN_MESSAGE : FALLBACK_PLAN_MESSAGE)
+      showToast({
+        type: 'primary',
+        message: shortSymptom ? GENERIC_PLAN_MESSAGE : FALLBACK_PLAN_MESSAGE,
+        duration: 4500,
+      })
     }
   } catch {
     await delayP
     plan.value = normalizeAiTherapyPlanData(null, payload)
-    ElMessage.info(FALLBACK_PLAN_MESSAGE)
+    showToast({ type: 'primary', message: FALLBACK_PLAN_MESSAGE, duration: 4500 })
   } finally {
     loading.value = false
   }
@@ -210,7 +212,7 @@ function onRegenerate() {
 function onToggleSave() {
   if (!plan.value) return
   const on = aiPlanStore.toggleSavePlan(plan.value)
-  ElMessage.success(on ? '已加入「我的 → AI 方案收藏」' : '已取消收藏')
+  showToast({ type: 'success', message: on ? '已加入「我的 → AI 方案收藏」' : '已取消收藏' })
 }
 
 async function onFeedback(useful) {
@@ -225,25 +227,21 @@ async function onFeedback(useful) {
   } catch {
     /* 预览或未配置反馈接口时忽略 */
   }
-  ElMessage.success(useful ? '感谢反馈，我们会持续优化推荐逻辑。' : '已记录，我们会改进生成质量。')
+  showToast({
+    type: 'success',
+    message: useful ? '感谢反馈，我们会持续优化推荐逻辑。' : '已记录，我们会改进生成质量。',
+  })
 }
 </script>
 
 <template>
   <div class="page ai-page campus-guide">
-    <el-alert
-      class="compliance-alert"
-      type="warning"
-      :closable="false"
-      show-icon
-    >
-      <template #title>
-        <strong class="compliance-alert__title">AI生成内容，仅供养生参考，不替代药物治疗</strong>
-      </template>
-      <p class="compliance-alert__sub">
+    <div class="compliance-banner page-card" role="alert">
+      <strong class="compliance-banner__title">AI生成内容，仅供养生参考，不替代药物治疗</strong>
+      <p class="compliance-banner__sub">
         不构成医疗诊断或处方；急重症请及时就医，请结合自身体质与医嘱审慎采纳。
       </p>
-    </el-alert>
+    </div>
 
     <header class="hero" aria-labelledby="ai-hero-title">
       <p class="hero__eyebrow">校园导览 · 个人调养</p>
@@ -257,15 +255,15 @@ async function onFeedback(useful) {
     </header>
 
     <section class="input-panel page-card">
-      <el-input
+      <van-field
         v-model="symptom"
         type="textarea"
-        :rows="8"
-        resize="none"
+        rows="8"
+        autosize
         maxlength="500"
         show-word-limit
-        class="symptom-input"
         placeholder="例如：最近熬夜多，口干、脸上容易长痘，想从饮食上调理……"
+        class="symptom-field"
       />
 
       <div class="examples">
@@ -284,68 +282,64 @@ async function onFeedback(useful) {
       </div>
 
       <div class="toolbar">
-        <el-checkbox
-          v-model="includeConstitution"
-          :disabled="!canUseConstitution"
-        >
+        <van-checkbox v-model="includeConstitution" :disabled="!canUseConstitution" shape="square">
           带入我的体质档案（{{ canUseConstitution ? userStore.constitutionLabel : '未设置' }}）
-        </el-checkbox>
-        <el-button
-          type="primary"
-          size="large"
-          :loading="loading"
-          @click="onGenerate"
-        >
-          <el-icon class="el-icon--left"><MagicStick /></el-icon>
+        </van-checkbox>
+        <van-button type="primary" size="large" native-type="button" :loading="loading" @click="onGenerate">
           生成方案
-        </el-button>
+        </van-button>
       </div>
     </section>
 
     <div v-if="plan" class="result-stack">
       <div class="result-actions page-card">
-        <el-button :type="isSaved ? 'warning' : 'primary'" plain @click="onToggleSave">
-          <el-icon class="el-icon--left">
-            <StarFilled v-if="isSaved" />
-            <Star v-else />
-          </el-icon>
+        <van-button
+          :type="isSaved ? 'warning' : 'primary'"
+          plain
+          hairline
+          native-type="button"
+          @click="onToggleSave"
+        >
           {{ isSaved ? '已收藏方案' : '收藏本方案' }}
-        </el-button>
-        <el-button plain :loading="loading" @click="onRegenerate">
-          <el-icon class="el-icon--left"><RefreshRight /></el-icon>
+        </van-button>
+        <van-button plain hairline native-type="button" :loading="loading" @click="onRegenerate">
           重新生成
-        </el-button>
+        </van-button>
         <div class="feedback-inline">
           <span class="feedback-inline__label">这条方案有用吗？</span>
-          <el-button
+          <van-button
             size="small"
             :type="feedbackUseful === true ? 'success' : 'default'"
+            plain
+            hairline
+            native-type="button"
             :disabled="feedbackSent"
             @click="onFeedback(true)"
           >
-            <el-icon class="el-icon--left"><Select /></el-icon>
             有用
-          </el-button>
-          <el-button
+          </van-button>
+          <van-button
             size="small"
-            :type="feedbackUseful === false ? 'info' : 'default'"
+            :type="feedbackUseful === false ? 'primary' : 'default'"
+            plain
+            hairline
+            native-type="button"
             :disabled="feedbackSent"
             @click="onFeedback(false)"
           >
-            <el-icon class="el-icon--left"><CloseBold /></el-icon>
             没用
-          </el-button>
+          </van-button>
         </div>
       </div>
 
       <AiTherapyPlanView :plan="plan" />
     </div>
 
-    <el-empty
+    <van-empty
       v-else-if="!loading"
       class="empty-hint"
+      image="search"
       description="填写症状描述后点击「生成方案」"
-      :image-size="72"
     />
 
     <Teleport to="body">
@@ -370,6 +364,7 @@ async function onFeedback(useful) {
 <style scoped>
 .campus-guide {
   max-width: 1100px;
+  padding-top: 0;
 }
 
 .hero {
@@ -416,29 +411,26 @@ async function onFeedback(useful) {
   position: relative;
 }
 
-.compliance-alert {
+.compliance-banner {
   position: sticky;
-  top: 0;
-  z-index: 30;
-  margin: calc(-1 * var(--space-lg)) calc(-1 * var(--space-lg)) var(--space-md);
-  width: calc(100% + 2 * var(--space-lg));
-  max-width: none;
-  box-sizing: border-box;
+  top: 46px;
+  z-index: 20;
+  margin: 0 0 var(--space-md);
+  padding: var(--space-md) var(--space-lg);
   border: 1px solid rgba(230, 162, 60, 0.55);
   box-shadow: 0 2px 10px rgba(230, 162, 60, 0.12);
+  background: #fffbeb;
 }
 
-.compliance-alert :deep(.el-alert__title) {
-  line-height: 1.45;
-}
-
-.compliance-alert__title {
+.compliance-banner__title {
+  display: block;
   font-size: var(--font-size-md);
   font-weight: 700;
   color: var(--color-text-primary);
+  line-height: 1.45;
 }
 
-.compliance-alert__sub {
+.compliance-banner__sub {
   margin: 6px 0 0;
   font-size: var(--font-size-sm);
   line-height: 1.55;
@@ -449,11 +441,12 @@ async function onFeedback(useful) {
   margin-bottom: var(--space-lg);
 }
 
-.symptom-input :deep(.el-textarea__inner) {
+.symptom-field :deep(.van-field__control) {
   font-size: var(--font-size-md);
   line-height: 1.65;
   min-height: 200px !important;
-  padding: 16px 18px;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 .examples {
@@ -502,6 +495,10 @@ async function onFeedback(useful) {
   justify-content: space-between;
   gap: var(--space-md);
   margin-top: var(--space-lg);
+}
+
+.toolbar :deep(.van-checkbox) {
+  flex: 1 1 220px;
 }
 
 .result-stack {
@@ -624,14 +621,12 @@ async function onFeedback(useful) {
 }
 
 @media (max-width: 640px) {
-  .compliance-alert {
-    margin-left: calc(-1 * var(--space-md));
-    margin-right: calc(-1 * var(--space-md));
-    width: calc(100% + 2 * var(--space-md));
-  }
-
   .feedback-inline {
     margin-left: 0;
+    width: 100%;
+  }
+
+  .toolbar .van-button {
     width: 100%;
   }
 }

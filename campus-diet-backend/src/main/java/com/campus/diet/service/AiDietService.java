@@ -1,16 +1,14 @@
 package com.campus.diet.service;
 
 import com.campus.diet.config.LlmProperties;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.campus.diet.service.ai.DietPlanLlmSkillAssembler;
+import com.campus.diet.service.ai.DietPlanSkillAssembly;
+import com.campus.diet.service.ai.LlmPromptBudgetHooks;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,8 +20,12 @@ import java.util.Map;
 @Service
 public class AiDietService {
 
+    private static final Logger log = LoggerFactory.getLogger(AiDietService.class);
+
     private final SystemKvService systemKvService;
-    private final RestTemplate restTemplate;
+    private final RuntimeLlmSkillPathResolver runtimeLlmSkillPathResolver;
+    private final RuntimeMetricService runtimeMetricService;
+    private final LlmChatClient llmChatClient;
     private final LlmProperties llmProperties;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -31,64 +33,81 @@ public class AiDietService {
 
     public AiDietService(
             SystemKvService systemKvService,
-            @Qualifier("llmRestTemplate") RestTemplate llmRestTemplate,
+            RuntimeLlmSkillPathResolver runtimeLlmSkillPathResolver,
+            RuntimeMetricService runtimeMetricService,
+            LlmChatClient llmChatClient,
             LlmProperties llmProperties,
             @Value("${campus.ai.mock:true}") boolean mock) {
         this.systemKvService = systemKvService;
-        this.restTemplate = llmRestTemplate;
+        this.runtimeLlmSkillPathResolver = runtimeLlmSkillPathResolver;
+        this.runtimeMetricService = runtimeMetricService;
+        this.llmChatClient = llmChatClient;
         this.llmProperties = llmProperties;
         this.mock = mock;
     }
 
     public Map<String, Object> generate(String symptoms) throws Exception {
+        long started = System.currentTimeMillis();
+        runtimeMetricService.increment("ai.diet.total");
         if (!systemKvService.flagOn("ai.generation.enabled", true)) {
+            runtimeMetricService.increment("ai.diet.disabled");
             Map<String, Object> off = baseEnvelope(symptoms);
             off.put("enabled", false);
             off.put("message", "AI 生成功能已由管理员关闭");
+            runtimeMetricService.recordCostMs("ai.diet", System.currentTimeMillis() - started);
             return off;
         }
         String apiKey = llmProperties.getApiKey() == null ? "" : llmProperties.getApiKey().trim();
         String upstreamUrl = llmProperties.getUrl() == null ? "" : llmProperties.getUrl().trim();
         String model = llmProperties.getModel() == null ? "" : llmProperties.getModel().trim();
         if (mock || upstreamUrl.isEmpty() || model.isEmpty() || "mock".equalsIgnoreCase(model)) {
-            return mockPlan(symptoms);
+            runtimeMetricService.increment("ai.diet.fallback");
+            Map<String, Object> out = mockPlan(symptoms);
+            runtimeMetricService.recordCostMs("ai.diet", System.currentTimeMillis() - started);
+            return out;
         }
-        return callUpstream(symptoms, upstreamUrl, apiKey, model);
+        Map<String, Object> out = callUpstream(symptoms, upstreamUrl, apiKey, model);
+        runtimeMetricService.recordCostMs("ai.diet", System.currentTimeMillis() - started);
+        return out;
     }
 
     private Map<String, Object> callUpstream(String symptoms, String upstreamUrl, String apiKey, String model)
             throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        if (apiKey != null && !apiKey.isBlank()) {
-            headers.setBearerAuth(apiKey.trim());
+        DietPlanSkillAssembly assembly =
+                DietPlanLlmSkillAssembler.assemble(runtimeLlmSkillPathResolver.resolveDietSystemPromptResource());
+        if ("diet_plan.default".equals(assembly.getSkillSetId())) {
+            runtimeMetricService.increment("ai.diet.skill_set.default");
+        } else {
+            runtimeMetricService.increment("ai.diet.skill_set.custom");
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put("model", model);
-        body.put("messages", List.of(
-                Map.of("role", "system", "content", buildSystemPrompt()),
+        log.debug(
+                "diet_plan LLM skill_set_id={} system_sha256={}",
+                assembly.getSkillSetId(),
+                assembly.getSkillContentSha256Hex());
+        String system = assembly.getSystemPrompt();
+        List<Map<String, String>> messages = List.of(
+                Map.of("role", "system", "content", system),
                 Map.of("role", "user", "content", "症状描述：" + symptoms)
-        ));
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-        ResponseEntity<String> resp = restTemplate.postForEntity(upstreamUrl, entity, String.class);
-        JsonNode root = objectMapper.readTree(resp.getBody());
-        String content = root.path("choices").path(0).path("message").path("content").asText("");
+        );
+        int promptChars = LlmPromptBudgetHooks.sumMessageUtf16Units(messages);
+        runtimeMetricService.increment("ai.diet.prompt_budget.observed");
+        runtimeMetricService.incrementBy("ai.diet.prompt_budget.chars_total", promptChars);
+        log.debug(
+                "diet_plan LLM prompt_budget utf16_content_units={} approx_tokens={} (observability only; no truncation)",
+                promptChars,
+                LlmPromptBudgetHooks.approxTokensHeuristic(promptChars));
+        String content = llmChatClient.chatCompletionsContent(upstreamUrl, apiKey, model, messages);
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> parsed = objectMapper.readValue(content, Map.class);
             parsed.putAll(complianceFields(true));
             parsed.put("symptomsInput", symptoms);
+            runtimeMetricService.increment("ai.diet.upstream.success");
             return parsed;
         } catch (Exception parseEx) {
+            runtimeMetricService.increment("ai.diet.upstream.failed");
             return mockPlan(symptoms);
         }
-    }
-
-    private String buildSystemPrompt() {
-        return "你是校园膳食指导助手。根据用户症状输出**仅 JSON**（不要 Markdown），字段："
-                + "summary(string), meals(array of {name, ingredients[], note}), cautions(string[]), "
-                + "isAiGenerated(true), notMedicalAdvice(true), regulatoryNotice(\"CN-TCM-DIET-AI-V1\")。"
-                + "不得诊断疾病，仅作膳食参考。";
     }
 
     private Map<String, Object> mockPlan(String symptoms) {

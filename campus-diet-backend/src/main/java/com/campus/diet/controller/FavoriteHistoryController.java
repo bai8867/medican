@@ -9,6 +9,7 @@ import com.campus.diet.security.LoginUser;
 import com.campus.diet.security.SecurityUtils;
 import com.campus.diet.service.BrowseHistoryService;
 import com.campus.diet.service.FavoriteService;
+import com.campus.diet.service.RuntimeMetricService;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Data;
 import org.springframework.web.bind.annotation.*;
@@ -24,10 +25,15 @@ public class FavoriteHistoryController {
 
     private final FavoriteService favoriteService;
     private final BrowseHistoryService browseHistoryService;
+    private final RuntimeMetricService runtimeMetricService;
 
-    public FavoriteHistoryController(FavoriteService favoriteService, BrowseHistoryService browseHistoryService) {
+    public FavoriteHistoryController(
+            FavoriteService favoriteService,
+            BrowseHistoryService browseHistoryService,
+            RuntimeMetricService runtimeMetricService) {
         this.favoriteService = favoriteService;
         this.browseHistoryService = browseHistoryService;
+        this.runtimeMetricService = runtimeMetricService;
     }
 
     @PostMapping("/favorites")
@@ -102,19 +108,39 @@ public class FavoriteHistoryController {
         return ApiResponse.ok(m);
     }
 
+    @PostMapping("/recommend-feedback")
+    public ApiResponse<Map<String, Object>> recommendFeedback(@RequestBody(required = false) RecommendFeedbackBody body) {
+        SecurityUtils.requireLogin();
+        String event = body == null ? "" : String.valueOf(body.getEvent()).trim().toLowerCase();
+        if (!event.isEmpty()) {
+            runtimeMetricService.increment("recommend.feedback." + event);
+        }
+        Map<String, Object> m = new HashMap<>();
+        m.put("ok", true);
+        return ApiResponse.ok(m);
+    }
+
     private static long parseRecipeId(Object raw) {
         if (raw == null) {
             throw new BizException(400, "缺少 recipeId");
         }
         if (raw instanceof Number) {
-            return ((Number) raw).longValue();
+            long value = ((Number) raw).longValue();
+            if (value <= 0) {
+                throw new BizException(400, "recipeId 必须为正整数");
+            }
+            return value;
         }
         String s = String.valueOf(raw).trim();
         if (s.isEmpty()) {
             throw new BizException(400, "缺少 recipeId");
         }
         try {
-            return Long.parseLong(s);
+            long value = Long.parseLong(s);
+            if (value <= 0) {
+                throw new BizException(400, "recipeId 必须为正整数");
+            }
+            return value;
         } catch (NumberFormatException e) {
             throw new BizException(400, "recipeId 须为服务端数字 ID（对接列表返回的 id）");
         }
@@ -125,5 +151,11 @@ public class FavoriteHistoryController {
         /** 兼容联调脚本与部分客户端使用的 snake_case */
         @JsonAlias("recipe_id")
         private Object recipeId;
+    }
+
+    @Data
+    public static class RecommendFeedbackBody {
+        private Object recipeId;
+        private String event;
     }
 }

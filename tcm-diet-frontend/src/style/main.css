@@ -2,8 +2,11 @@
 
 .page-title {
   margin: 0 0 var(--space-md);
+  font-family: var(--font-serif);
   font-size: var(--font-size-2xl);
   font-weight: 600;
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.03em;
   color: var(--color-text);
 }
 

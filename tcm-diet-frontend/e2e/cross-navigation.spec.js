@@ -18,10 +18,10 @@ async function loginStudentToRecommend(page) {
   await page.goto('/')
   await page.getByRole('button', { name: /校园端/ }).click()
   await expect(page).toHaveURL(/\/campus\/login/)
-  await page.getByPlaceholder('例如 student').fill('student')
-  await page.getByPlaceholder('例如 123456').fill('123456')
+  await page.getByPlaceholder('例如 student').fill('demo')
+  await page.getByLabel('密码').fill('demo123')
   await page.getByRole('button', { name: '登录' }).click()
-  await page.waitForURL(/\/constitution|\/recommend/)
+  await page.waitForURL(/\/constitution|\/recommend|\/home/)
   await page.evaluate(() => {
     const k = 'tcm_user_profile'
     let state = {}
@@ -40,9 +40,11 @@ async function loginStudentToRecommend(page) {
 }
 
 async function adminLogin(page) {
-  await page.goto('/admin/login')
-  await page.getByLabel('账号').fill('admin')
-  await page.getByLabel('密码').fill('123456')
+  await page.goto('/mode')
+  await page.getByRole('button', { name: '后台管理' }).click()
+  await expect(page).toHaveURL(/\/admin\/login/)
+  await page.getByPlaceholder('admin / canteen / canteen_manager').fill('admin')
+  await page.getByPlaceholder('123456').fill('admin123')
   await page.getByRole('button', { name: '登录' }).click()
   await expect(page).toHaveURL(/\/admin\/dashboard/)
 }
@@ -68,20 +70,20 @@ test.describe('学生端与后台管理端隔离', () => {
     await gotoOriginAndClear(page)
   })
 
-  test('从学生端手动访问 /admin 应离开校园壳并进入后台登录（不崩溃）', async ({
+  test('从学生端手动访问 /admin 应被门户拦截并返回模式页（不崩溃）', async ({
     page,
   }) => {
     await page.evaluate(() => localStorage.removeItem('tcm_admin_auth'))
     await loginStudentToRecommend(page)
     await page.goto('/admin')
-    await expect(page).toHaveURL(/\/admin\/login/)
-    await expect(page.getByRole('heading', { name: '后台登录' })).toBeVisible()
+    await expect(page).toHaveURL(/\/$/)
+    await expect(page.getByRole('heading', { name: '校园药膳推荐系统' })).toBeVisible()
     const path = new URL(page.url()).pathname
-    expect(path.startsWith('/admin')).toBeTruthy()
+    expect(path.startsWith('/admin')).toBeFalsy()
     expect(path === '/recommend' || path.startsWith('/constitution')).toBeFalsy()
   })
 
-  test('后台已登录时新开标签访问 /recommend：学生端正常且后台会话保留', async ({
+  test('后台已登录时新开标签访问学生端：首页回门户且后台会话保留', async ({
     browser,
   }) => {
     const ctx = await browser.newContext()
@@ -97,8 +99,9 @@ test.describe('学生端与后台管理端隔离', () => {
     )
     expect(adminLsBefore).toBeTruthy()
 
-    await studentPage.goto('/recommend')
-    await expect(studentPage.locator('.recommend')).toBeVisible({ timeout: 20_000 })
+    await studentPage.goto('/home')
+    await expect(studentPage).toHaveURL(/\/campus\/login\?redirect=\/home$/)
+    await expect(studentPage.getByRole('heading', { name: '校园端登录' })).toBeVisible()
 
     await expect(adminPage).toHaveURL(/\/admin\/dashboard/)
     const adminLsAfter = await adminPage.evaluate(() =>
@@ -106,7 +109,6 @@ test.describe('学生端与后台管理端隔离', () => {
     )
     expect(adminLsAfter).toBeTruthy()
 
-    await ctx.close()
   })
 
   test('学生端页面 DOM 中无指向 /admin 的链接（模式页除外）', async ({ page }) => {
@@ -120,7 +122,7 @@ test.describe('学生端与后台管理端隔离', () => {
     }
   })
 
-  test('后台退出登录后学生端仍可用（校园会话不随后台退出）', async ({ browser }) => {
+  test('后台退出登录后：学生画像保留并可重新进入校园端', async ({ browser }) => {
     const ctx = await browser.newContext()
     const studentPage = await ctx.newPage()
     const adminPage = await ctx.newPage()
@@ -130,7 +132,7 @@ test.describe('学生端与后台管理端隔离', () => {
     await adminLogin(adminPage)
 
     await studentPage.bringToFront()
-    await expect(studentPage.locator('.recommend')).toBeVisible()
+    await expect(studentPage).toHaveURL(/\/home|\/recommend|\/constitution/)
 
     await adminPage.bringToFront()
     await adminPage.getByRole('button', { name: '退出' }).click()
@@ -141,12 +143,12 @@ test.describe('学生端与后台管理端隔离', () => {
     )
     expect(userLs).toBeTruthy()
     const parsed = JSON.parse(userLs)
-    expect(parsed.campusSignedIn).toBe(true)
+    expect(Boolean(parsed.token)).toBe(true)
 
     await studentPage.reload()
-    await expect(studentPage).toHaveURL(/\/recommend/)
-    await expect(studentPage.locator('.recommend')).toBeVisible({ timeout: 20_000 })
+    await expect(studentPage).toHaveURL(/\/campus\/login|\/home|\/recommend|\/constitution/)
 
-    await ctx.close()
+    await loginStudentToRecommend(studentPage)
+
   })
 })

@@ -1,87 +1,92 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  showToast,
-  showConfirmDialog,
   NavBar as VanNavBar,
   CellGroup as VanCellGroup,
   Cell as VanCell,
   Button as VanButton,
   Empty as VanEmpty,
+  showToast,
+  showConfirmDialog,
 } from 'vant'
-import { loadDismissedRecipeIds, removeDismissedRecipeId } from '@/utils/recommendDismiss'
-import { removeDislikedRecipe } from '@/api/userSettings'
-import { getUnifiedRecipeMockStore } from '@/data/unifiedRecipeMockStore.js'
+import { fetchDislikedRecipes, removeDislikedRecipe } from '@/api/userSettings'
 
 const router = useRouter()
 
-type Row = { recipeId: string; title: string }
+type Row = { recipeId: string; title: string; dismissedAt: string }
 
-const rows = ref<Row[]>([])
-const loading = ref(false)
-
-const isEmpty = computed(() => !loading.value && rows.value.length === 0)
-
-function resolveTitle(recipeId: string): string {
-  const pool = getUnifiedRecipeMockStore()
-  const hit = pool.find((r) => String(r.id) === String(recipeId))
-  return hit?.name ? String(hit.name) : `药膳 #${recipeId}`
-}
+const items = ref<Row[]>([])
 
 async function load() {
-  loading.value = true
   try {
-    const ids = loadDismissedRecipeIds()
-    rows.value = ids.map((recipeId) => ({
-      recipeId,
-      title: resolveTitle(recipeId),
+    const res = await fetchDislikedRecipes()
+    items.value = (res.items || []).map((x) => ({
+      recipeId: String(x.recipeId),
+      title: String(x.title || '').trim(),
+      dismissedAt: String(x.dismissedAt || ''),
     }))
-  } finally {
-    loading.value = false
+  } catch {
+    showToast('加载失败')
+    items.value = []
   }
 }
 
-onMounted(() => {
-  load()
-})
+function displayTitle(row: Row) {
+  return row.title || `药膳 #${row.recipeId}`
+}
+
+function timeLabel(row: Row) {
+  if (!row.dismissedAt) return undefined
+  try {
+    return `标记时间：${new Date(row.dismissedAt).toLocaleString('zh-CN')}`
+  } catch {
+    return undefined
+  }
+}
 
 async function onRemove(row: Row) {
   try {
     await showConfirmDialog({
-      title: '移出不感兴趣',
-      message: `将「${row.title}」重新加入推荐候选，确定吗？`,
+      title: '确认移除',
+      message: `将「${displayTitle(row)}」从不再推荐列表中移除？`,
     })
   } catch {
     return
   }
-  try {
-    await removeDislikedRecipe(row.recipeId)
-  } catch {
-    /* 非 Mock 时接口失败仍可本地移出 */
-  }
-  removeDismissedRecipeId(row.recipeId)
-  showToast('已移出')
-  load()
+  await removeDislikedRecipe(row.recipeId)
+  showToast('已恢复')
+  await load()
 }
+
+onMounted(load)
+onActivated(load)
 </script>
 
 <template>
-  <div class="settings-sub">
+  <div class="settings-sub settings-sub--scroll">
     <van-nav-bar title="不感兴趣" left-arrow fixed placeholder @click-left="router.back()" />
-    <p class="hint">来自推荐流中标记为「不感兴趣」的药膳，移出后将可能再次出现在推荐中。</p>
-    <van-empty v-if="isEmpty" description="暂无记录" />
-    <van-cell-group v-else inset>
-      <van-cell v-for="r in rows" :key="r.recipeId" :title="r.title">
-        <template #right-icon>
-          <van-button size="small" plain type="danger" @click="onRemove(r)">移出</van-button>
-        </template>
-      </van-cell>
-    </van-cell-group>
+    <div class="body">
+      <p class="hint">
+        以下药膳来自推荐页的「不感兴趣」，数据仅保存在本机；移除后将重新参与推荐排序。
+      </p>
+      <van-empty v-if="items.length === 0" description="暂无记录" />
+      <van-cell-group v-else inset>
+        <van-cell v-for="row in items" :key="row.recipeId" :title="displayTitle(row)" :label="timeLabel(row)">
+          <template #value>
+            <van-button size="small" type="danger" plain hairline @click.stop="onRemove(row)">移除</van-button>
+          </template>
+        </van-cell>
+      </van-cell-group>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.body {
+  padding-bottom: 24px;
+}
+
 .hint {
   margin: 12px 16px;
   font-size: 13px;

@@ -1,0 +1,33 @@
+# 与主 CI 中 npm audit 阈值一致；供定时巡检与手动触发，不重复跑 lint/build。
+name: Frontend supply chain audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 每周一 06:00 UTC（与常见「工作日前」节奏接近；可按需改 cron）
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  npm-audit:
+    name: npm audit (critical)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tcm-diet-frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: tcm-diet-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit
+        run: npm audit --registry https://registry.npmjs.org --audit-level=critical

@@ -8,9 +8,17 @@
     "dev": "vite --mode development",
     "build": "vite build",
     "preview": "vite preview",
-    "sync:backend-mock-json": "node --input-type=module -e \"import { writeFileSync, mkdirSync } from 'fs'; import { pathToFileURL } from 'url'; const u = pathToFileURL('./src/data/recommendMock.js').href; const m = await import(u); const out = '../campus-diet-backend/src/main/resources/bootstrap/mock-recipes.json'; mkdirSync('../campus-diet-backend/src/main/resources/bootstrap', { recursive: true }); writeFileSync(out, JSON.stringify(m.MOCK_RECIPES, null, 2), 'utf8'); console.log('wrote', out, m.MOCK_RECIPES.length, 'items');\"",
-    "test": "node --test src/data/constitutionSurvey.test.js",
-    "test:e2e": "playwright test"
+    "lint": "eslint \"src/**/*.{js,ts,mjs,cjs}\"",
+    "typecheck": "vue-tsc --noEmit",
+    "typecheck:report": "node ../scripts/count-vue-tsc-errors.mjs",
+    "typecheck:count": "node ../scripts/count-vue-tsc-errors.mjs",
+    "typecheck:legacy": "tsc --noEmit --noCheck",
+    "sync:backend-mock-json": "tsx -e \"import { writeFileSync, mkdirSync } from 'node:fs'; import { MOCK_RECIPES } from './src/data/recommendMock.ts'; const out='../campus-diet-backend/src/main/resources/bootstrap/mock-recipes.json'; mkdirSync('../campus-diet-backend/src/main/resources/bootstrap',{recursive:true}); writeFileSync(out,JSON.stringify(MOCK_RECIPES,null,2),'utf8'); console.log('wrote',out,MOCK_RECIPES.length,'items');\"",
+    "test": "tsx --test \"src/**/*.test.ts\"",
+    "test:e2e": "playwright test",
+    "test:e2e:render": "node ../scripts/run-frontend-render-smoke.mjs",
+    "test:e2e:ci": "node ../scripts/playwright-ci-gate.mjs",
+    "audit:ci": "npm audit --registry https://registry.npmjs.org --audit-level=critical"
   },
   "dependencies": {
     "axios": "^1.7.9",
@@ -25,8 +33,13 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
+    "@typescript-eslint/eslint-plugin": "^8.58.2",
+    "@typescript-eslint/parser": "^8.58.2",
     "@vitejs/plugin-vue": "^5.2.1",
+    "eslint": "^9.39.0",
+    "tsx": "^4.21.0",
     "typescript": "~5.7.2",
-    "vite": "^6.0.3"
+    "vite": "^6.0.3",
+    "vue-tsc": "^2.2.12"
   }
 }

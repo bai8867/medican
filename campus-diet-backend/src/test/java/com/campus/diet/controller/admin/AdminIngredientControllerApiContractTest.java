@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
@@ -20,9 +21,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -92,8 +95,66 @@ class AdminIngredientControllerApiContractTest {
     }
 
     @Test
+    void page_whenKeywordProvided_shouldReturnOk() throws Exception {
+        LoginUserHolder.set(new LoginUser(3L, "cm", Roles.CANTEEN_MANAGER));
+        Page<Ingredient> p = new Page<>(1, 10);
+        p.setRecords(List.of());
+        p.setTotal(0);
+        when(ingredientMapper.selectPage(any(Page.class), any())).thenReturn(p);
+
+        mockMvc.perform(
+                        get("/api/admin/ingredients")
+                                .param("page", "1")
+                                .param("page_size", "10")
+                                .param("keyword", " 枸杞 "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.records").isArray());
+    }
+
+    @Test
+    void page_whenPageSizeExceedsCap_shouldClampTo100() throws Exception {
+        LoginUserHolder.set(new LoginUser(3L, "cm", Roles.CANTEEN_MANAGER));
+        Page<Ingredient> p = new Page<>(1, 100);
+        p.setRecords(List.of());
+        p.setTotal(0);
+        when(ingredientMapper.selectPage(any(Page.class), any())).thenReturn(p);
+
+        mockMvc.perform(
+                        get("/api/admin/ingredients")
+                                .param("page", "1")
+                                .param("page_size", "999"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.pageSize").value(100));
+
+        @SuppressWarnings("rawtypes")
+        ArgumentCaptor<Page> pageCaptor = ArgumentCaptor.forClass(Page.class);
+        verify(ingredientMapper).selectPage(pageCaptor.capture(), any());
+        assertEquals(100, pageCaptor.getValue().getSize());
+    }
+
+    @Test
+    void page_whenEnabledFilter_shouldReturnOk() throws Exception {
+        LoginUserHolder.set(new LoginUser(3L, "cm", Roles.CANTEEN_MANAGER));
+        Page<Ingredient> p = new Page<>(1, 10);
+        p.setRecords(List.of());
+        p.setTotal(0);
+        when(ingredientMapper.selectPage(any(Page.class), any())).thenReturn(p);
+
+        mockMvc.perform(
+                        get("/api/admin/ingredients")
+                                .param("page", "1")
+                                .param("page_size", "10")
+                                .param("enabled", "false"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+    }
+
+    @Test
     void create_whenAdmin_shouldReturnIngredientOnData() throws Exception {
         LoginUserHolder.set(new LoginUser(1L, "admin", Roles.ADMIN));
+        when(ingredientMapper.selectCount(any())).thenReturn(0L);
         doAnswer(
                         invocation -> {
                             Ingredient arg = invocation.getArgument(0);
@@ -119,6 +180,21 @@ class AdminIngredientControllerApiContractTest {
                 .andExpect(jsonPath("$.data.category").value("herb"));
 
         verify(ingredientMapper).insert(any(Ingredient.class));
+    }
+
+    @Test
+    void create_whenDuplicateName_shouldReturn409() throws Exception {
+        LoginUserHolder.set(new LoginUser(1L, "admin", Roles.ADMIN));
+        when(ingredientMapper.selectCount(any())).thenReturn(1L);
+
+        mockMvc.perform(
+                        post("/api/admin/ingredients")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"name\":\"重复\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value(409));
+
+        verify(ingredientMapper, never()).insert(any());
     }
 
     @Test

@@ -45,5 +45,26 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    build: {
+      chunkSizeWarningLimit: 700,
+      reportCompressedSize: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return
+            if (id.includes('element-plus')) return 'vendor-element-plus'
+            // 低频变更、利于长期缓存；匹配须早于宽泛的 vendor-misc（见 Rollup manualChunks 实践）
+            if (id.includes('node_modules/axios')) return 'vendor-axios'
+            if (id.includes('echarts')) return 'vendor-echarts'
+            if (id.includes('xlsx')) return 'vendor-xlsx'
+            if (id.includes('vant')) return 'vendor-vant'
+            if (id.includes('vue') || id.includes('pinia') || id.includes('vue-router')) {
+              return 'vendor-vue-core'
+            }
+            return 'vendor-misc'
+          },
+        },
+      },
+    },
   }
 })

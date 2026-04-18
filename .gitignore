@@ -3,6 +3,19 @@ dev-tools/
 .devtools/
 medican.zip
 
+# 根目录误放的大型/工具二进制与常见本机垃圾（勿提交；需要时从本机 PATH 或单独目录引用）
+/uv.exe
+/uvw.exe
+/uvx.exe
+Thumbs.db
+.DS_Store
+
+# Cursor / Agent 插件缓存若落在仓库内（勿提交；`marketplace.json` 等若需入库请勿把整个 cache 目录加进来）
+.agents/plugins/cache/
+
+# 本机 MySQL 数据目录（若放在仓库根或子目录，勿提交；见 README / mysql-dev-my.ini 说明）
+/mysql-data/
+
 # Dependency and build artifacts
 **/node_modules/
 **/dist/
@@ -22,3 +35,10 @@ medican.zip
 **/.env.*.local
 **/playwright-report/
 **/test-results/
+
+# Local agent/tooling workdirs
+.cursor/
+.claude/
+.tools/
+.firecrawl/
+.vscode/

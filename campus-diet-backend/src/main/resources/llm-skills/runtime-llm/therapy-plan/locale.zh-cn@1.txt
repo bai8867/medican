@@ -1,0 +1,1 @@
+请使用简体中文撰写 JSON 各字符串字段与 therapyRecommendMarkdown 正文。

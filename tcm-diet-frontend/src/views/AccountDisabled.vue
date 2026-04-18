@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { showToast, Button as VanButton } from 'vant'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -9,9 +10,14 @@ function goEntry() {
   router.push({ path: '/' })
 }
 
-function copyId() {
+async function copyId() {
   if (!userStore.userId) return
-  navigator.clipboard?.writeText(userStore.userId).catch(() => null)
+  try {
+    await navigator.clipboard?.writeText(userStore.userId)
+    showToast({ type: 'success', message: '已复制' })
+  } catch {
+    showToast('复制失败，请手动选择复制')
+  }
 }
 </script>
 
@@ -23,10 +29,12 @@ function copyId() {
       <p>请使用新的学号或昵称重新注册；若需恢复本账号，请联系管理员在「用户管理」中将状态改回「正常」。</p>
       <p v-if="userStore.userId" class="account-disabled__id">
         当前用户 ID：<code>{{ userStore.userId }}</code>
-        <el-button link type="primary" @click="copyId">复制</el-button>
+        <van-button type="primary" size="small" plain hairline class="account-disabled__copy" @click="copyId">
+          复制
+        </van-button>
       </p>
       <p class="account-disabled__hint">提示：重新注册需使用未被占用的用户名。</p>
-      <el-button type="primary" plain @click="goEntry">返回模式选择</el-button>
+      <van-button type="primary" block round plain @click="goEntry">返回模式选择</van-button>
     </div>
   </div>
 </template>
@@ -64,11 +72,19 @@ function copyId() {
 
 .account-disabled__id {
   margin-top: var(--space-md) !important;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
 }
 
 .account-disabled__id code {
   font-size: 12px;
   word-break: break-all;
+}
+
+.account-disabled__copy {
+  flex-shrink: 0;
 }
 
 .account-disabled__hint {

@@ -1,0 +1,41 @@
+# Spring Boot + Micrometer：HTTP 指标一般为 http_server_requests_seconds_*
+groups:
+  - name: campus-diet-backend
+    rules:
+      - alert: BackendInstanceDown
+        expr: up{job="campus-diet-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "campus-diet-backend 抓取失败或实例不可达"
+          description: "Prometheus 已连续 1 分钟无法从该 job 拉到指标，请检查进程与网络。"
+
+      - alert: HighHttpServerErrorRate
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{job="campus-diet-backend",outcome="SERVER_ERROR"}[5m]))
+            /
+            sum(rate(http_server_requests_seconds_count{job="campus-diet-backend"}[5m]))
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP SERVER_ERROR 占比过高（>5%，持续 2m）"
+          description: "请结合 Grafana 中 http_server_requests 按 uri/status 下钻。"
+
+      - alert: HighHttpLatencyP99
+        expr: |
+          histogram_quantile(
+            0.99,
+            sum by (le) (
+              rate(http_server_requests_seconds_bucket{job="campus-diet-backend"}[5m])
+            )
+          ) > 2
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HTTP P99 延迟 > 2s（持续 3m）"
+          description: "请检查下游依赖、数据库与 JVM GC；阈值可按业务调低/调高。"

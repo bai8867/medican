@@ -3,18 +3,18 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Tab, Tabs, Button as VanButton, Loading as VanLoading, Empty as VanEmpty } from 'vant'
 import SceneStoryCard from '@/components/scene/SceneStoryCard.vue'
-import { fetchSceneSolution } from '@/api/scenes.js'
-import { getSceneSeed, pickSceneRecipes } from '@/data/sceneTherapySeed.js'
-import { getUnifiedRecipeMockStore } from '@/data/unifiedRecipeMockStore.js'
+import { fetchSceneSolution } from '@/api/scenes'
+import { getSceneSeed, pickSceneRecipes } from '@/data/sceneTherapySeed'
+import { getUnifiedRecipeMockStore } from '@/data/unifiedRecipeMockStore'
 import { useUserStore } from '@/stores/user'
-import { compareSceneRecipeRows } from '@/utils/campusMealPreferences.js'
+import { compareSceneRecipeRows } from '@/utils/campusMealPreferences'
 import {
   fetchResolvedWeeklyCalendar,
   buildSceneCalendarPresentation,
   resolveRecipeDetailNavId,
-} from '@/utils/sceneCalendarBinding.js'
-import { getWeeklyGoalForScene, getLifestyleLinesForScene } from '@/data/sceneCalendarCopy.js'
-import { recipeSchematicCoverUrl } from '@/utils/recipeCoverPlaceholder.js'
+} from '@/utils/sceneCalendarBinding'
+import { getWeeklyGoalForScene, getLifestyleLinesForScene } from '@/data/sceneCalendarCopy'
+import { recipeSchematicCoverUrl } from '@/utils/recipeCoverPlaceholder'
 
 const route = useRoute()
 const router = useRouter()
@@ -512,11 +512,13 @@ function goAiTailor() {
   box-shadow: 0 10px 28px color-mix(in srgb, var(--color-primary) 12%, transparent);
   transition:
     transform 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .recipe-hero:hover {
   transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--color-primary) 55%, var(--color-border));
+  border-color: var(--color-border-hover-primary);
+  box-shadow: var(--shadow-card-hover-float);
 }
 
 .recipe-hero__cover {
@@ -826,7 +828,7 @@ function goAiTailor() {
   background: var(--color-bg-elevated);
 }
 .tea-card[data-type='tip'] {
-  border-left: 4px solid #6366f1;
+  border-left: 4px solid var(--color-primary-light);
 }
 .tea-card[data-type='tea'] {
   border-left: 4px solid var(--color-primary);

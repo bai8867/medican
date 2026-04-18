@@ -6,6 +6,7 @@ import {
   Box,
   Calendar,
   DataLine,
+  Histogram,
   Setting,
   UserFilled,
 } from '@element-plus/icons-vue'
@@ -52,6 +53,12 @@ const menuItems = computed(() => {
       path: '/admin/system/settings',
       title: '系统设置',
       icon: Setting,
+      roles: ['admin'],
+    },
+    {
+      path: '/admin/ai-quality',
+      title: 'AI 质量治理',
+      icon: Histogram,
       roles: ['admin'],
     },
   ]

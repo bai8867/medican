@@ -1,9 +1,10 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { NavBar as VanNavBar, Empty as VanEmpty, Button as VanButton } from 'vant'
 import LoadingSkeleton from '@/components/common/LoadingSkeleton.vue'
 import AiTherapyPlanView from '@/components/ai/AiTherapyPlanView.vue'
-import { fetchAiPlanDetail } from '@/api/ai.js'
+import { fetchAiPlanDetail } from '@/api/ai'
 import { useAiPlanStore } from '@/stores/aiPlan'
 
 const route = useRoute()
@@ -77,8 +78,8 @@ function onBack() {
 </script>
 
 <template>
-  <div class="page">
-    <el-page-header @back="onBack" content="AI 方案详情" />
+  <div class="page ai-plan-detail">
+    <van-nav-bar title="AI 方案详情" left-arrow fixed placeholder @click-left="onBack" />
 
     <LoadingSkeleton v-if="loading" :rows="4" />
 
@@ -97,26 +98,30 @@ function onBack() {
     </template>
 
     <template v-else-if="plan && viewMode === 'legacy'">
-      <div class="page-card hero" v-if="plan.coverUrl">
+      <div v-if="plan.coverUrl" class="page-card hero">
         <img class="hero__img" :src="plan.coverUrl" :alt="plan.title" loading="lazy" />
       </div>
       <div class="page-card body">
         <h1 class="title">{{ plan.title }}</h1>
         <p v-if="plan.summary" class="summary">{{ plan.summary }}</p>
         <pre v-if="plan.content" class="content">{{ plan.content }}</pre>
-        <el-empty v-if="!plan.summary && !plan.content" description="暂无方案正文" />
+        <van-empty v-if="!plan.summary && !plan.content" description="暂无方案正文" />
       </div>
     </template>
 
-    <div v-else class="page-card">
-      <el-empty description="未找到该方案或后端未接入">
-        <el-button type="primary" @click="router.push({ name: 'AIGenerate' })">去生成方案</el-button>
-      </el-empty>
+    <div v-else class="page-card empty-wrap">
+      <van-empty description="未找到该方案或后端未接入">
+        <van-button type="primary" @click="router.push({ name: 'AIGenerate' })">去生成方案</van-button>
+      </van-empty>
     </div>
   </div>
 </template>
 
 <style scoped>
+.ai-plan-detail {
+  padding-top: 0;
+}
+
 .head-block {
   margin-top: var(--space-md);
 }
@@ -128,23 +133,14 @@ function onBack() {
   color: var(--color-text);
 }
 
-.symptom-echo:last-child {
-  margin-bottom: 0;
-}
-
 .symptom-echo__label {
   display: inline-block;
-  margin-right: 8px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: var(--font-size-xs);
-  color: var(--color-primary-dark);
-  background: rgba(74, 124, 89, 0.1);
+  min-width: 4.5em;
+  margin-right: 0.35em;
+  color: var(--color-text-secondary);
 }
 
 .hero {
-  padding: 0;
-  overflow: hidden;
   margin-top: var(--space-md);
 }
 
@@ -153,30 +149,30 @@ function onBack() {
   width: 100%;
   max-height: 220px;
   object-fit: cover;
+  border-radius: var(--radius-md);
 }
 
-.body {
-  margin-top: var(--space-md);
-}
-
-.title {
+.body .title {
   margin: 0 0 var(--space-sm);
   font-size: var(--font-size-xl);
 }
 
-.summary {
+.body .summary {
   margin: 0 0 var(--space-md);
   color: var(--color-text-secondary);
   line-height: 1.6;
 }
 
-.content {
+.body .content {
   margin: 0;
   white-space: pre-wrap;
-  word-break: break-word;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  font-family: inherit;
   font-size: var(--font-size-sm);
-  line-height: 1.6;
-  color: var(--color-text);
+  line-height: 1.65;
+}
+
+.empty-wrap {
+  margin-top: var(--space-xl);
+  text-align: center;
 }
 </style>

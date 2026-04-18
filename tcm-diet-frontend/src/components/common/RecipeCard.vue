@@ -1,11 +1,11 @@
 <script setup>
 import { computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { showToast, showConfirmDialog, Tag as VanTag } from 'vant'
 import { useCollectStore } from '@/stores/collect'
-import { setRecipeFavorite } from '@/api/recipe.js'
-import { looksLikeBearerJwt } from '@/utils/authToken.js'
-import { readCampusToken } from '@/utils/storedTokens.js'
+import { setRecipeFavorite } from '@/api/recipe'
+import { looksLikeBearerJwt } from '@/utils/authToken'
+import { readCampusToken } from '@/utils/storedTokens'
 
 const props = defineProps({
   recipe: {
@@ -19,7 +19,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['patch-collect', 'not-interested'])
+const emit = defineEmits(['patch-collect', 'not-interested', 'open-detail'])
 
 const router = useRouter()
 const collectStore = useCollectStore()
@@ -57,6 +57,7 @@ const reasonLine = computed(
 
 function openDetail() {
   const r = props.recipe
+  emit('open-detail', r.id)
   collectStore.pushHistory(r.id, {
     name: r.name || '药膳',
     coverUrl: typeof r.coverUrl === 'string' ? r.coverUrl : '',
@@ -70,7 +71,7 @@ async function onCollect(e) {
   if (import.meta.env.VITE_USE_MOCK !== 'true') {
     const tk = readCampusToken()
     if (!looksLikeBearerJwt(tk)) {
-      ElMessage.warning('请先登录后再收藏')
+      showToast('请先登录后再收藏')
       router.push({
         path: '/campus/login',
         query: { redirect: router.currentRoute.value.fullPath },
@@ -95,7 +96,7 @@ async function onCollect(e) {
     collectStore.toggleCollect(rid)
     emit('patch-collect', { id: rid, collectCount: prevCount })
     if (import.meta.env.VITE_USE_MOCK !== 'true' && (e?.code === 401 || /登录/.test(String(e?.message || '')))) {
-      ElMessage.warning(typeof e?.message === 'string' ? e.message : '请先登录后再收藏')
+      showToast(typeof e?.message === 'string' ? e.message : '请先登录后再收藏')
       router.push({
         path: '/campus/login',
         query: { redirect: router.currentRoute.value.fullPath },
@@ -111,15 +112,24 @@ function clearLongPress() {
   }
 }
 
+function confirmNotInterested() {
+  return showConfirmDialog({
+    title: '不感兴趣',
+    message: '标记为不感兴趣？该药膳将在推荐流中隐藏。',
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+  })
+}
+
 function onPointerDown(e) {
   if (e.target?.closest?.('button')) return
   if (e.button !== undefined && e.button !== 0) return
   clearLongPress()
   longPressTimer = setTimeout(() => {
     longPressTimer = null
-    if (window.confirm('标记为不感兴趣？该药膳将在推荐流中隐藏。')) {
-      emit('not-interested', props.recipe.id)
-    }
+    confirmNotInterested()
+      .then(() => emit('not-interested', props.recipe.id))
+      .catch(() => {})
   }, longPressMs)
 }
 
@@ -129,16 +139,16 @@ function onPointerUp() {
 
 function onContextMenu(e) {
   e.preventDefault()
-  if (window.confirm('标记为不感兴趣？该药膳将在推荐流中隐藏。')) {
-    emit('not-interested', props.recipe.id)
-  }
+  confirmNotInterested()
+    .then(() => emit('not-interested', props.recipe.id))
+    .catch(() => {})
 }
 
 function onDismissClick(e) {
   e.stopPropagation()
-  if (window.confirm('标记为不感兴趣？该药膳将在推荐流中隐藏。')) {
-    emit('not-interested', props.recipe.id)
-  }
+  confirmNotInterested()
+    .then(() => emit('not-interested', props.recipe.id))
+    .catch(() => {})
 }
 
 onUnmounted(() => {
@@ -197,26 +207,26 @@ onUnmounted(() => {
     <div class="card__body">
       <h3 class="card__title">{{ recipe.name }}</h3>
       <div v-if="effectTags.length" class="card__tags card__tags--fx">
-        <el-tag
+        <van-tag
           v-for="(tag, idx) in effectTags"
           :key="'fx-' + idx"
-          size="small"
           type="warning"
-          effect="plain"
+          plain
+          size="medium"
         >
           {{ tag }}
-        </el-tag>
+        </van-tag>
       </div>
       <div v-if="suitLabels.length" class="card__tags">
-        <el-tag
+        <van-tag
           v-for="(lab, idx) in suitLabels"
           :key="'sc-' + idx"
-          size="small"
           type="success"
-          effect="light"
+          plain
+          size="medium"
         >
           宜 {{ lab }}
-        </el-tag>
+        </van-tag>
       </div>
       <div class="card__stats">
         <span class="card__fav-count">收藏 {{ collectCount }}</span>
@@ -236,16 +246,21 @@ onUnmounted(() => {
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-card);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
   display: flex;
   flex-direction: column;
   break-inside: avoid;
   margin-bottom: var(--space-md);
 }
 
-.card:hover {
+.card:hover,
+.card:focus-within {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: var(--shadow-card-hover-float);
+  border-color: var(--color-border-hover-primary);
 }
 
 .card__cover {
@@ -280,10 +295,15 @@ onUnmounted(() => {
   height: 100%;
   display: grid;
   place-items: center;
+  font-family: var(--font-serif);
   font-size: 36px;
   font-weight: 700;
-  color: var(--color-primary-light);
-  background: linear-gradient(135deg, #ecfdf5, #d8f3dc);
+  color: var(--color-primary-dark);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--color-primary) 12%, var(--color-bg-elevated)),
+    color-mix(in srgb, var(--color-accent) 14%, var(--color-bg-main))
+  );
 }
 
 .card__fav {
@@ -299,13 +319,21 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 2px 10px rgba(44, 44, 42, 0.12);
   cursor: pointer;
-  color: #c75c5c;
-  transition: transform 0.12s ease, background 0.12s ease;
+  color: var(--color-warning);
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .card__fav:hover {
   transform: scale(1.06);
   background: #fff;
+}
+
+.card__fav:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: 2px;
 }
 
 .card__fav[aria-pressed='true'] {
@@ -326,8 +354,11 @@ onUnmounted(() => {
 
 .card__title {
   margin: 0;
+  font-family: var(--font-serif);
   font-size: var(--font-size-lg);
-  line-height: 1.35;
+  line-height: var(--line-height-tight);
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .card__tags {
@@ -336,7 +367,7 @@ onUnmounted(() => {
   gap: 6px;
 }
 
-.card__tags--fx :deep(.el-tag) {
+.card__tags--fx :deep(.van-tag) {
   border-radius: var(--radius-sm);
 }
 
@@ -372,16 +403,24 @@ onUnmounted(() => {
 .card__dismiss {
   align-self: flex-start;
   margin-top: var(--space-xs);
-  padding: 0;
+  padding: 2px 0;
   border: none;
+  border-radius: var(--radius-sm);
   background: none;
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .card__dismiss:hover {
   color: var(--color-text-secondary);
+}
+
+.card__dismiss:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: 2px;
 }
 </style>

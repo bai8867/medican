@@ -86,12 +86,17 @@ public class UserController {
     @PostMapping("/constitution/survey")
     public ApiResponse<Map<String, Object>> submitSurvey(@Valid @RequestBody SurveyBody body) {
         LoginUser u = SecurityUtils.requireLogin();
-        ConstitutionSurveyService.SurveyResult r = constitutionSurveyService.evaluate(body.getAnswers());
+        ConstitutionSurveyService.SurveyResult r = constitutionSurveyService.evaluate(body.getAnswers(), body.getQuestionVersion());
         userProfileService.saveConstitution(u.getUserId(), r.primaryCode, body.getSeasonCode(), r.scoresJson);
         Map<String, Object> m = new HashMap<>();
         m.put("primaryCode", r.primaryCode);
         m.put("primaryLabel", r.primaryLabel);
-        m.put("scores", r.scores);
+        m.put("secondaryCodes", r.secondaryCodes);
+        m.put("transformedScores", r.transformedScores);
+        m.put("rawScores", r.rawScores);
+        m.put("confidence", r.confidence);
+        m.put("ruleTrace", r.ruleTrace);
+        m.put("questionVersion", r.questionVersion);
         return ApiResponse.ok(m);
     }
 
@@ -120,8 +125,9 @@ public class UserController {
     @Data
     public static class SurveyBody {
         @NotNull
-        @Size(min = 9, max = 9, message = "问卷需 9 题得分")
+        @Size(min = 9, max = 200, message = "问卷题量范围不合法")
         private List<Integer> answers;
         private String seasonCode;
+        private String questionVersion;
     }
 }

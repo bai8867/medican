@@ -2,8 +2,10 @@ package com.campus.diet.security;
 
 import com.campus.diet.common.ApiResponse;
 import com.campus.diet.common.ErrorCodes;
+import com.campus.diet.config.RequestObservabilityInterceptor;
 import com.campus.diet.entity.SysUser;
 import com.campus.diet.mapper.SysUserMapper;
+import com.campus.diet.service.RuntimeMetricService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,11 +22,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final SysUserMapper sysUserMapper;
+    private final RuntimeMetricService runtimeMetricService;
     private final ObjectMapper objectMapper;
 
-    public JwtAuthFilter(JwtService jwtService, SysUserMapper sysUserMapper, ObjectMapper objectMapper) {
+    public JwtAuthFilter(
+            JwtService jwtService,
+            SysUserMapper sysUserMapper,
+            RuntimeMetricService runtimeMetricService,
+            ObjectMapper objectMapper) {
         this.jwtService = jwtService;
         this.sysUserMapper = sysUserMapper;
+        this.runtimeMetricService = runtimeMetricService;
         this.objectMapper = objectMapper;
     }
 
@@ -55,11 +63,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         SysUser user = sysUserMapper.selectById(lu.getUserId());
                         if (user == null) {
                             if (!isAuthWhitelist(uri)) {
+                                runtimeMetricService.increment("error.category.auth.invalid_user");
+                                request.setAttribute(RequestObservabilityInterceptor.ATTR_BIZ_CODE, 401);
                                 writeJson(response, ApiResponse.fail(401, "登录已失效，请重新登录"));
                                 return;
                             }
                         } else if (user.getStatus() != null && user.getStatus() == 0) {
                             if (!isAuthWhitelist(uri)) {
+                                runtimeMetricService.increment("error.category.auth.disabled");
+                                request.setAttribute(
+                                        RequestObservabilityInterceptor.ATTR_BIZ_CODE,
+                                        ErrorCodes.ACCOUNT_DISABLED);
                                 writeJson(
                                         response,
                                         ApiResponse.fail(

@@ -8,6 +8,7 @@ import com.campus.diet.security.LoginUser;
 import com.campus.diet.security.LoginUserHolder;
 import com.campus.diet.security.Roles;
 import com.campus.diet.service.ConstitutionSurveyService;
+import com.campus.diet.service.ConstitutionSurveyService.SurveyResult;
 import com.campus.diet.service.RuntimeMetricService;
 import com.campus.diet.service.UserProfileService;
 import org.junit.jupiter.api.AfterEach;
@@ -20,10 +21,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -105,5 +112,51 @@ class UserControllerApiContractTest {
 
         verify(userProfileService).updatePrivacy(eq(99L), eq(false));
         verify(userProfileService).updateRecommendSwitch(eq(99L), eq(true));
+    }
+
+    @Test
+    void updateProfile_whenConstitutionCodeProvided_shouldReturnOkAndPersist() throws Exception {
+        mockMvc.perform(
+                        put("/api/user/profile")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"constitutionCode\":\"yinxu\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.ok").value(true));
+
+        verify(userProfileService).updateConstitutionManual(eq(99L), eq("yinxu"));
+    }
+
+    @Test
+    void submitSurvey_whenLegacyNine_shouldReturnSurveyEnvelope() throws Exception {
+        SurveyResult r =
+                new SurveyResult(
+                        "qixu",
+                        "气虚质",
+                        Collections.emptyList(),
+                        Map.of("qixu", 0.6),
+                        Map.of("qixu", 18.0),
+                        0.55,
+                        List.of("legacy-nine"),
+                        ConstitutionSurveyService.LEGACY_VERSION,
+                        "{}");
+
+        when(constitutionSurveyService.evaluate(any(), eq(ConstitutionSurveyService.LEGACY_VERSION)))
+                .thenReturn(r);
+
+        String body =
+                "{\"answers\":[3,3,3,3,3,3,3,3,3],\"seasonCode\":\"summer\",\"questionVersion\":\"legacy-v1\"}";
+
+        mockMvc.perform(
+                        post("/api/user/constitution/survey")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.primaryCode").value("qixu"))
+                .andExpect(jsonPath("$.data.primaryLabel").value("气虚质"))
+                .andExpect(jsonPath("$.data.questionVersion").value(ConstitutionSurveyService.LEGACY_VERSION));
+
+        verify(userProfileService).saveConstitution(eq(99L), eq("qixu"), eq("summer"), eq("{}"));
     }
 }

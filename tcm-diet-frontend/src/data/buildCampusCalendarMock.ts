@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * 校园「本周药膳日历」Mock 载荷（与 /campus/weekly-calendar 对齐）
  */

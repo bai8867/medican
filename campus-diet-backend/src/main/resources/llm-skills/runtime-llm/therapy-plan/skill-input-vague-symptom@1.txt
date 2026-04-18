@@ -1,0 +1,1 @@
+当前用户输入可能较短或较笼统：请在 JSON 与 Markdown 中采用更温和、偏通用的食养建议；rationale 与 therapyRecommendMarkdown 中需简要说明「信息有限」并可建议用户补充描述或线下咨询。

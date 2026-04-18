@@ -1,4 +1,4 @@
-import request from '../request.js'
+import request from '../request'
 
 export type DefaultSeason = 'spring' | 'summer' | 'autumn' | 'winter' | 'auto'
 
@@ -109,17 +109,21 @@ export interface ExportUserStatsMockDTO {
   filename: string
 }
 
+/** 与 AdminSystemController 返回字段对齐（驼峰），供前端与契约测试引用 */
+export interface AdminSystemFlagsResponse {
+  aiGenerationEnabled?: boolean
+  recommendGlobalEnabled?: boolean
+}
+
 async function loadFlagsFromServer(): Promise<{
   ai_generate_enabled: boolean
   recommend_switch: boolean
 }> {
-  const data = (await request.get('/admin/system/flags', { skipGlobalMessage: true })) as {
-    aiGenerationEnabled?: boolean
-    recommendGlobalEnabled?: boolean
-  }
+  const data =
+    (await request.get<AdminSystemFlagsResponse>('/admin/system/flags', { skipGlobalMessage: true })) ?? {}
   return {
-    ai_generate_enabled: data?.aiGenerationEnabled !== false,
-    recommend_switch: data?.recommendGlobalEnabled !== false,
+    ai_generate_enabled: data.aiGenerationEnabled !== false,
+    recommend_switch: data.recommendGlobalEnabled !== false,
   }
 }
 
@@ -253,8 +257,11 @@ export async function exportUserStats(): Promise<void> {
   }
   let note = '说明,当前后端未提供用户体质分布统计导出；请通过数据库或后续报表服务导出\n'
   try {
-    const dash = await request.get('/admin/dashboard', { skipGlobalMessage: true })
-    const n = Array.isArray(dash?.topCollected) ? dash.topCollected.length : 0
+    const dash = await request.get<Record<string, unknown>>('/admin/dashboard', {
+      skipGlobalMessage: true,
+    })
+    const top = dash.topCollected
+    const n = Array.isArray(top) ? top.length : 0
     note += `dashboard_sample,热门药膳样条数=${n}\n`
   } catch {
     note += 'dashboard,不可读\n'

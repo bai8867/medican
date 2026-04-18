@@ -1,7 +1,20 @@
 server:
   port: 11888
-  # 本机前后端同机时，用局域网 IP 访问 11888 也监听（便于直连调试；防火墙需放行）
-  address: 0.0.0.0
+  # 默认仅监听本机，跨机器联调时可通过 SERVER_ADDRESS 覆盖为 0.0.0.0
+  address: ${SERVER_ADDRESS:127.0.0.1}
+
+# Prometheus 抓取 /actuator/prometheus；JWT 过滤器仅注册在 /api/*，此处无需额外放行。
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 spring:
   application:
@@ -11,15 +24,16 @@ spring:
     # 药膳、食材、周历、用户等表在同一 MySQL 库（见 classpath:db/schema.sql）。勿用 ${VAR:jdbc:mysql://...} 写法，冒号会截断默认值。
     # 改库名/主机：设 MYSQL_HOST、MYSQL_PORT、MYSQL_DATABASE、MYSQL_USERNAME、MYSQL_PASSWORD；或设 SPRING_DATASOURCE_URL 为完整 JDBC（会覆盖 url）
     url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:tcm_diet}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
-    username: ${MYSQL_USERNAME:root}
-    password: ${MYSQL_PASSWORD:root}
+    # 为避免 root/root 习惯，默认使用受限应用账号；建议通过环境变量覆盖
+    username: ${MYSQL_USERNAME:tcm_app}
+    password: ${MYSQL_PASSWORD:change-this-db-password}
   sql:
     init:
       # 已有完整数据且不想每次启动执行 classpath data.sql 时，设 SPRING_SQL_INIT_MODE=never
       mode: ${SPRING_SQL_INIT_MODE:always}
       encoding: UTF-8
       continue-on-error: true
-      schema-locations: classpath:db/schema.sql,classpath:db/patch-scene-therapy-columns.sql
+      schema-locations: classpath:db/schema.sql,classpath:db/patch-scene-therapy-columns.sql,classpath:db/patch-ingredient-enabled-column.sql
       data-locations: classpath:db/data.sql
 
 mybatis-plus:
@@ -35,7 +49,8 @@ mybatis-plus:
 # 大模型：OpenAI 兼容。默认网关用分段拼接，避免 ${LLM_URL:http://...} 被冒号截断；完整 URL 可设环境变量 LLM_URL 覆盖 llm.url。
 llm:
   url: http://${LLM_HTTP_HOST:ds.local.ai}:${LLM_HTTP_PORT:30080}/v1/chat/completions
-  api-key: ${LLM_API_KEY:de00e26309e14847964d42c871c8ffca}
+  # 开发环境可留空；prod 启动时会由 ProdSecurityBaselineValidator 强制校验非空
+  api-key: ${LLM_API_KEY:}
   model: ${LLM_MODEL:MDQWEN330BBF4AAE62D7EA}
   timeout: ${LLM_TIMEOUT_MS:120000}
 
@@ -47,14 +62,37 @@ campus:
     seed-demo-interactions: true
     # 当本周某食堂尚无周历时，写入与前端 Mock 等价的演示数据（已有行则跳过）
     seed-weekly-calendar: true
+  seed-users:
+    admin-password: ${SEED_ADMIN_PASSWORD:SeedAdmin#2026!}
+    canteen-password: ${SEED_CANTEEN_PASSWORD:SeedCanteen#2026!}
+    demo-password: ${SEED_DEMO_PASSWORD:SeedDemo#2026!}
+    student-password: ${SEED_STUDENT_PASSWORD:SeedStudent#2026!}
   jwt:
-    secret: "campus-diet-jwt-secret-change-in-production-min-32-chars!!"
+    # 开发默认值仅用于本机调试；prod 启动时必须通过 CAMPUS_JWT_SECRET 覆盖并通过基线校验
+    secret: ${CAMPUS_JWT_SECRET:dev-only-jwt-secret-change-before-prod-32chars}
     expire-minutes: 10080
   ai:
     enabled: true
     # 为 true 时不调用上游，食疗方案走本地拼装兜底；URL/密钥/模型见顶层 llm.*
     mock: false
+    # 食疗 LLM system 路由：留空则短输入（少于 4 字）自动插入 brief Skill；default / brief 强制路由（见 TherapyPlanLlmRoute）
+    therapy-route-override: ${AI_THERAPY_ROUTE_OVERRIDE:}
+    # M2：runtime-llm Skill 的 classpath 路径（食疗为目录前缀，膳食为单文件）；用于灰度 / 自定义资源包。
+    # system_kv 可覆盖（优先生效）：ai.runtime-llm.therapy-resource-prefix、ai.runtime-llm.diet-system-prompt-resource
+    runtime-llm:
+      therapy-resource-prefix: ${AI_THERAPY_SKILL_PREFIX:llm-skills/runtime-llm/therapy-plan}
+      diet-system-prompt-resource: ${AI_DIET_SYSTEM_PROMPT_RESOURCE:llm-skills/runtime-llm/diet-plan/system-prompt@1.txt}
   recommend:
+    # 规则优先（rules）+ 可切换 hybrid 行为重排（A->B 演进）
+    algorithm-path: rules
+    candidate-window-size: 240
     # 个性化分支：体质+季节匹配权重 vs 热度（收藏）权重，和为 1
     match-weight: 0.6
     popularity-weight: 0.4
+    behavior-weight: 0.1
+  system-kv:
+    cache-ttl-ms: 10000
+
+  cors:
+    # 本地开发允许的前端来源；生产建议在 application-prod.yml 按域名精确配置
+    allowed-origin-patterns: ${CAMPUS_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:11999,http://127.0.0.1:11999,http://localhost:5173,http://127.0.0.1:5173}

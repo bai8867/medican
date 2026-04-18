@@ -8,11 +8,12 @@ import {
   Cell as VanCell,
   CellGroup as VanCellGroup,
   Switch as VanSwitch,
-  ActionSheet as VanActionSheet,
+  DropdownMenu as VanDropdownMenu,
+  DropdownItem as VanDropdownItem,
   Button as VanButton,
 } from 'vant'
 import { useUserStore, CONSTITUTION_TYPES } from '@/stores/user'
-import { SEASON_OPTIONS, getSeasonLabel } from '@/utils/season.js'
+import { SEASON_OPTIONS } from '@/utils/season'
 import { APP_VERSION, APP_DISPLAY_NAME } from '@/config/app-version'
 import {
   updateUserPreferences,
@@ -27,25 +28,29 @@ import {
   LS_ADMIN_TOKEN,
   LS_CAMPUS_TOKEN,
   LS_LEGACY_TOKEN,
-} from '@/utils/storedTokens.js'
+} from '@/utils/storedTokens'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-const seasonSheetVisible = ref(false)
 const personalizedLoading = ref(false)
 const exportLoading = ref(false)
-
-const seasonActions = SEASON_OPTIONS.map((o) => ({
-  name: `${o.label}季`,
-}))
 
 const constitutionName = computed(() => {
   const hit = CONSTITUTION_TYPES.find((c) => c.code === userStore.constitutionCode)
   return hit?.label || '未设置'
 })
 
-const seasonDisplay = computed(() => `${getSeasonLabel(userStore.seasonCode)}季`)
+const seasonPickerOptions = computed(() =>
+  SEASON_OPTIONS.map((o) => ({ text: `${o.label}季`, value: o.code })),
+)
+
+const seasonModel = computed({
+  get: () => userStore.seasonCode,
+  set: (code: string) => {
+    void onSeasonPick(code)
+  },
+})
 
 const cacheSizeText = ref('—')
 
@@ -78,13 +83,7 @@ onMounted(() => {
   refreshCacheSize()
 })
 
-function openSeasonSheet() {
-  seasonSheetVisible.value = true
-}
-
-async function onSeasonSelect(action: { name?: string }) {
-  seasonSheetVisible.value = false
-  const code = SEASON_OPTIONS.find((o) => `${o.label}季` === action.name)?.code || ''
+async function onSeasonPick(code: string) {
   if (!code || code === userStore.seasonCode) return
   const prev = userStore.seasonCode
   userStore.updateSeason(code)
@@ -235,9 +234,21 @@ function go(path: string) {
     </header>
 
     <section class="settings-section">
-      <h2 class="settings-section__title">通用设置</h2>
-      <van-cell-group inset>
-        <van-cell title="季节偏好" :value="seasonDisplay" is-link @click="openSeasonSheet" />
+      <van-cell-group inset title="通用设置">
+        <van-cell title="季节偏好" center class="season-preference-cell">
+          <template #value>
+            <div class="season-cell-dd" @click.stop>
+              <van-dropdown-menu :overlay="false">
+                <van-dropdown-item
+                  class="campus-settings-season-dd"
+                  v-model="seasonModel"
+                  :options="seasonPickerOptions"
+                  teleport="body"
+                />
+              </van-dropdown-menu>
+            </div>
+          </template>
+        </van-cell>
         <van-cell title="个性化推荐" label="根据体质推荐（合规开关）" center>
           <template #right-icon>
             <van-switch
@@ -270,8 +281,7 @@ function go(path: string) {
     </section>
 
     <section class="settings-section">
-      <h2 class="settings-section__title">账号管理</h2>
-      <van-cell-group inset>
+      <van-cell-group inset title="账号管理">
         <van-cell title="个人资料" is-link @click="go('/settings/profile')" />
         <van-cell
           title="体质管理"
@@ -285,8 +295,7 @@ function go(path: string) {
     </section>
 
     <section class="settings-section">
-      <h2 class="settings-section__title">数据管理</h2>
-      <van-cell-group inset>
+      <van-cell-group inset title="数据管理">
         <van-cell title="不感兴趣管理" is-link @click="go('/settings/dislikes')" />
         <van-cell title="浏览历史" is-link @click="go('/profile?tab=history')" />
         <van-cell title="收藏管理" is-link @click="go('/profile?tab=favorites')" />
@@ -300,8 +309,7 @@ function go(path: string) {
     </section>
 
     <section class="settings-section">
-      <h2 class="settings-section__title">服务协议</h2>
-      <van-cell-group inset>
+      <van-cell-group inset title="服务协议">
         <van-cell title="用户协议" is-link @click="showUserAgreement" />
         <van-cell title="隐私政策" is-link @click="go('/settings/privacy')" />
         <van-cell title="药膳免责声明" is-link @click="showMedicalDisclaimer" />
@@ -316,46 +324,29 @@ function go(path: string) {
       <p class="settings-footer__hint">{{ APP_DISPLAY_NAME }} · v{{ APP_VERSION }}</p>
     </div>
 
-    <van-action-sheet
-      v-model:show="seasonSheetVisible"
-      :actions="seasonActions"
-      cancel-text="取消"
-      close-on-click-action
-      @select="onSeasonSelect"
-    />
   </div>
 </template>
 
 <style scoped>
-.page-title {
-  margin: 0 0 8px;
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-}
-
-.page-subtitle {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  line-height: 1.55;
+/* 与 van-cell-group inset 左右边距一致，避免顶栏卡片比下方「季节偏好」等列表更宽 */
+.campus-settings .page-head.page-card {
+  margin-inline: var(--van-padding-md, 16px);
+  box-sizing: border-box;
 }
 
 .settings-section {
-  margin-bottom: 12px;
+  margin-bottom: var(--space-md);
 }
 
-.settings-section__title {
-  margin: 0 0 8px 12px;
-  font-size: 15px;
-  font-weight: 700;
+.settings-section :deep(.van-cell-group__title) {
   text-align: left;
 }
 
 .settings-footer {
-  margin: 24px 16px 32px;
+  margin: var(--space-xl) var(--van-padding-md, 16px) var(--space-xl);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-sm);
 }
 
 .logout-btn {
@@ -365,8 +356,61 @@ function go(path: string) {
 .settings-footer__hint {
   margin: 0;
   text-align: center;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
+}
+
+/* 与 RecommendFilterPanel 一致：包裹层挂变量，保证 scoped 命中 */
+.season-cell-dd {
+  display: inline-flex;
+  justify-content: flex-end;
+  max-width: 100%;
+  --van-dropdown-menu-height: 30px;
+  --van-dropdown-menu-title-font-size: var(--font-size-sm);
+  --van-dropdown-menu-title-line-height: var(--line-height-tight);
+}
+
+.season-cell-dd :deep(.van-dropdown-menu__bar) {
+  width: fit-content;
+  max-width: 100%;
+  height: var(--van-dropdown-menu-height);
+  box-shadow: none;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+}
+
+.season-cell-dd :deep(.van-dropdown-menu__bar--opened) {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+.season-cell-dd :deep(.van-dropdown-menu__title) {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+  padding: 0 var(--space-xs);
+}
+
+.season-cell-dd :deep(.van-dropdown-menu__title--active) {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* 约 8 个汉字 + 下拉箭头与内边距（与下方弹出层宽度量级一致） */
+.season-cell-dd :deep(.van-dropdown-menu__item) {
+  flex: 0 0 auto;
+  min-width: min(10.5rem, calc(100vw - 48px));
+  max-width: min(13rem, calc(100vw - 32px));
+}
+
+.season-preference-cell :deep(.van-cell__value) {
+  flex: 0 1 auto;
+  min-width: 0;
 }
 </style>
 
@@ -375,5 +419,19 @@ function go(path: string) {
   max-height: 55vh;
   overflow-y: auto;
   white-space: pre-wrap;
+}
+
+/* 季节偏好 DropdownItem teleport 到 body，需非 scoped 命中弹出层 */
+.campus-settings-season-dd.van-dropdown-item .van-dropdown-item__content.van-popup--top {
+  width: fit-content !important;
+  min-width: min(10.5rem, calc(100vw - 48px));
+  max-width: min(13rem, calc(100vw - 32px));
+  left: auto !important;
+  right: max(var(--van-padding-md, 16px), env(safe-area-inset-right, 0px)) !important;
+}
+
+.campus-settings-season-dd .van-dropdown-item__option.van-cell {
+  padding: 8px 12px;
+  font-size: var(--font-size-sm, 13px);
 }
 </style>

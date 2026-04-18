@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS `recipe` (
   `deleted` tinyint NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE INDEX `idx_recipe_status_deleted_collect` ON `recipe` (`status`,`deleted`,`collect_count`,`id`);
 
 CREATE TABLE IF NOT EXISTS `scene_recipe` (
   `scene_id` bigint NOT NULL,
@@ -70,6 +71,7 @@ CREATE TABLE IF NOT EXISTS `ingredient` (
   `name` varchar(64) NOT NULL,
   `category` varchar(64) DEFAULT NULL,
   `note` varchar(512) DEFAULT NULL,
+  `enabled` tinyint NOT NULL DEFAULT 1 COMMENT '是否在药膳表单与下拉中启用',
   `image_url` varchar(512) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleted` tinyint NOT NULL DEFAULT 0,
@@ -104,9 +106,12 @@ CREATE TABLE IF NOT EXISTS `browse_history` (
   `viewed_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_user_time` (`user_id`,`viewed_at`),
+  KEY `idx_user_recipe` (`user_id`,`recipe_id`),
   CONSTRAINT `fk_hist_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`id`),
   CONSTRAINT `fk_hist_recipe` FOREIGN KEY (`recipe_id`) REFERENCES `recipe` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX `idx_profile_constitution` ON `user_profile` (`constitution_code`);
 
 CREATE TABLE IF NOT EXISTS `feedback` (
   `id` bigint NOT NULL AUTO_INCREMENT,
@@ -121,6 +126,26 @@ CREATE TABLE IF NOT EXISTS `system_kv` (
   `k` varchar(64) NOT NULL,
   `v` varchar(512) NOT NULL,
   PRIMARY KEY (`k`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `ai_issue_sample` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `symptom` varchar(255) DEFAULT NULL,
+  `constitution_code` varchar(32) DEFAULT NULL,
+  `quality_score` int NOT NULL,
+  `score_threshold` int NOT NULL,
+  `safety_passed` tinyint NOT NULL DEFAULT 1,
+  `violated_rules_json` text,
+  `request_payload_json` text,
+  `response_payload_json` longtext,
+  `guard_enabled` tinyint NOT NULL DEFAULT 1,
+  `strict_safety` tinyint NOT NULL DEFAULT 1,
+  `source` varchar(64) DEFAULT NULL,
+  `replayed` tinyint NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_ai_issue_created` (`created_at`),
+  KEY `idx_ai_issue_replayed` (`replayed`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `campus_canteen` (

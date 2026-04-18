@@ -39,8 +39,9 @@ const rules: FormRules = {
 }
 
 async function submit() {
-  if (!formRef.value) return
-  await formRef.value.validate(async (valid) => {
+  const fr = formRef.value
+  if (!fr) return
+  await fr.validate(async (valid) => {
     if (!valid) return
     submitLoading.value = true
     try {
@@ -50,7 +51,7 @@ async function submit() {
         confirm_password: form.confirm_password,
       })
       ElMessage.success('密码已修改')
-      formRef.value.resetFields()
+      fr.resetFields()
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '修改失败'
       ElMessage.warning(msg)

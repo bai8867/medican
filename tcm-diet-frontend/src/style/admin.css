@@ -38,6 +38,20 @@
   padding: var(--space-lg);
 }
 
+.admin-root .el-button--primary {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.admin-root .el-button--primary.is-round,
+.admin-root .el-button.is-round {
+  border-radius: var(--radius-btn);
+}
+
+.admin-root .el-select .el-input__wrapper {
+  border-radius: var(--radius-md);
+}
+
 .admin-login-page {
   width: 100%;
   box-sizing: border-box;
@@ -63,8 +77,11 @@
   width: 100%;
   max-width: 400px;
   padding: var(--space-xl);
-  background: #fff;
+  background: color-mix(in srgb, #fff 92%, var(--color-bg-main));
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-card);
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, var(--color-primary) 8%);
+  box-shadow:
+    var(--shadow-card),
+    0 28px 70px rgba(44, 44, 42, 0.07);
+  backdrop-filter: saturate(140%) blur(10px);
 }

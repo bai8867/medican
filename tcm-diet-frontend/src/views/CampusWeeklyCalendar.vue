@@ -8,9 +8,9 @@ import {
   Empty as VanEmpty,
   Tag as VanTag,
 } from 'vant'
-import { fetchWeeklyCalendar } from '@/api/campusCalendar.ts'
+import { fetchWeeklyCalendar } from '@/api/campusCalendar'
 import { buildWeeklyCalendarMockPayload } from '@/data/buildCampusCalendarMock.ts'
-import { formatYmd } from '@/utils/campusWeekCalendar.js'
+import { formatYmd } from '@/utils/campusWeekCalendar'
 import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
@@ -905,7 +905,8 @@ function estimatedPublishLine() {
 }
 
 .dish-card--clickable.ui-card:hover {
-  box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-border-hover-primary);
+  box-shadow: var(--shadow-card-hover-float);
   transform: translateY(-2px);
 }
 

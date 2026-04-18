@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -79,9 +80,14 @@ public class BrowseHistoryService {
                         .eq(BrowseHistory::getUserId, userId)
                         .orderByDesc(BrowseHistory::getViewedAt)
                         .last("LIMIT 200"));
+        List<Long> ids = list.stream().map(BrowseHistory::getRecipeId).distinct().collect(Collectors.toList());
+        Map<Long, Recipe> byId = ids.isEmpty()
+                ? Map.of()
+                : recipeMapper.selectBatchIds(ids).stream()
+                .collect(Collectors.toMap(Recipe::getId, Function.identity(), (a, b) -> a));
         Map<Long, Recipe> ordered = new LinkedHashMap<>();
         for (BrowseHistory h : list) {
-            Recipe r = recipeMapper.selectById(h.getRecipeId());
+            Recipe r = byId.get(h.getRecipeId());
             if (r != null) {
                 ordered.putIfAbsent(r.getId(), r);
             }
@@ -103,10 +109,15 @@ public class BrowseHistoryService {
                         .orderByDesc(BrowseHistory::getViewedAt)
                         .orderByDesc(BrowseHistory::getId)
                         .last("LIMIT " + cap));
+        List<Long> ids = rows.stream().map(BrowseHistory::getRecipeId).distinct().collect(Collectors.toList());
+        Map<Long, Recipe> byId = ids.isEmpty()
+                ? Map.of()
+                : recipeMapper.selectBatchIds(ids).stream()
+                .collect(Collectors.toMap(Recipe::getId, Function.identity(), (a, b) -> a));
         ZoneId z = ZoneId.systemDefault();
         List<Map<String, Object>> out = new ArrayList<>();
         for (BrowseHistory h : rows) {
-            Recipe r = recipeMapper.selectById(h.getRecipeId());
+            Recipe r = byId.get(h.getRecipeId());
             if (r == null) {
                 continue;
             }

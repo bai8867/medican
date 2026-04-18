@@ -1,16 +1,27 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import {
+  showToast,
+  Button as VanButton,
+  Progress as VanProgress,
+  RadioGroup as VanRadioGroup,
+  Radio as VanRadio,
+  CellGroup as VanCellGroup,
+  Cell as VanCell,
+} from 'vant'
 import { useUserStore, CONSTITUTION_TYPES } from '@/stores/user'
-import { submitConstitutionTest } from '@/api/constitution.js'
+import { submitConstitutionTest } from '@/api/constitution'
 import {
   CONSTITUTION_BRIEF,
   SCORE_OPTIONS,
   getQuestionsByGroup,
+  getQuestionGroupCount,
+  getTotalQuestionCount,
+  QUESTION_BANK_VERSION,
   computeMockConstitution,
-} from '@/data/constitutionSurvey.js'
-import { SEASON_OPTIONS, getCurrentSeasonCode, getSeasonLabel } from '@/utils/season.js'
+} from '@/data/constitutionSurvey'
+import { SEASON_OPTIONS, getCurrentSeasonCode, getSeasonLabel } from '@/utils/season'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -18,8 +29,10 @@ const userStore = useUserStore()
 /** summary: 已完成用户入口；quiz: 分步问卷；confirm: 结果确认 */
 const phase = ref(userStore.constitutionSurveyCompleted ? 'summary' : 'quiz')
 const groupIndex = ref(0)
+const groupCount = getQuestionGroupCount()
+const totalQuestionCount = getTotalQuestionCount()
 /** @type {import('vue').Ref<(number | null)[]>} */
-const answers = ref(Array.from({ length: 9 }, () => null))
+const answers = ref(Array.from({ length: totalQuestionCount }, () => null))
 
 const submitting = ref(false)
 const saving = ref(false)
@@ -31,7 +44,7 @@ const inferredBrief = ref('')
 const pickCode = ref('pinghe')
 const pickSeason = ref(getCurrentSeasonCode())
 
-const progressPercent = computed(() => ((groupIndex.value + 1) / 3) * 100)
+const progressPercent = computed(() => ((groupIndex.value + 1) / groupCount) * 100)
 
 const currentQuestions = computed(() => getQuestionsByGroup(groupIndex.value))
 
@@ -44,6 +57,13 @@ const groupFilled = computed(() =>
 
 function allQuestionsAnswered() {
   return answers.value.every((v) => v != null && v >= 1 && v <= 5)
+}
+
+function setAnswer(index, score) {
+  const n = typeof score === 'string' ? Number(score) : score
+  const next = [...answers.value]
+  next[index] = Number.isFinite(n) ? n : null
+  answers.value = next
 }
 
 const seasonLabel = computed(() => getSeasonLabel(userStore.seasonCode))
@@ -95,7 +115,7 @@ async function finishQuiz() {
   let code = 'pinghe'
   let brief = briefFor('pinghe')
   try {
-    const raw = await submitConstitutionTest({ answers: list })
+    const raw = await submitConstitutionTest({ answers: list, questionVersion: QUESTION_BANK_VERSION })
     const norm = normalizeApiResult(raw)
     if (norm) {
       code = norm.constitutionCode
@@ -104,10 +124,10 @@ async function finishQuiz() {
       throw new Error('empty')
     }
   } catch {
-    const mock = computeMockConstitution(answers.value)
+    const mock = computeMockConstitution(answers.value, { questionVersion: QUESTION_BANK_VERSION })
     code = mock.constitutionCode
     brief = briefFor(code)
-    ElMessage.info('接口暂不可用，已按本地规则取最高分体质')
+    showToast({ message: '接口暂不可用，已按本地规则取最高分体质', duration: 4000 })
   } finally {
     submitting.value = false
   }
@@ -120,15 +140,15 @@ async function finishQuiz() {
 
 function onNextGroup() {
   if (!groupFilled.value) {
-    ElMessage.warning('请为本组每一题选择 1–5 分')
+    showToast('请为本组每一题选择 1–5 分')
     return
   }
-  if (groupIndex.value < 2) {
+  if (groupIndex.value < groupCount - 1) {
     groupIndex.value += 1
     return
   }
   if (!allQuestionsAnswered()) {
-    ElMessage.warning('请完成全部 9 题后再提交（可返回前两组检查）')
+    showToast(`请完成全部 ${totalQuestionCount} 题后再提交（可返回前几组检查）`)
     return
   }
   finishQuiz()
@@ -145,9 +165,10 @@ async function onSkip() {
     await submitConstitutionTest({
       constitutionCode: 'pinghe',
       seasonCode: season,
+      questionVersion: QUESTION_BANK_VERSION,
     }).catch(() => {})
     userStore.saveConstitutionProfile('pinghe', season)
-    ElMessage.success('已跳过测评，默认保存为平和质')
+    showToast({ type: 'success', message: '已跳过测评，默认保存为平和质' })
     router.push({ name: 'Home' })
   } finally {
     saving.value = false
@@ -155,7 +176,7 @@ async function onSkip() {
 }
 
 function startRetest() {
-  answers.value = Array.from({ length: 9 }, () => null)
+  answers.value = Array.from({ length: totalQuestionCount }, () => null)
   groupIndex.value = 0
   phase.value = 'quiz'
 }
@@ -178,6 +199,7 @@ async function onConfirmProfile() {
     const payload = {
       constitutionCode: pickCode.value,
       seasonCode: pickSeason.value,
+      questionVersion: QUESTION_BANK_VERSION,
     }
     const filled = answers.value.every((v) => v != null && v >= 1 && v <= 5)
     if (filled) payload.answers = [...answers.value]
@@ -185,7 +207,7 @@ async function onConfirmProfile() {
   } finally {
     userStore.saveConstitutionProfile(pickCode.value, pickSeason.value)
     saving.value = false
-    ElMessage.success('画像已保存')
+    showToast({ type: 'success', message: '画像已保存' })
     router.push({ name: 'Home' })
   }
 }
@@ -195,7 +217,7 @@ async function onConfirmProfile() {
   <div class="page constitution-page">
     <h1 class="page-title">体质采集</h1>
     <p class="page-subtitle">
-      共 9 题分三组，请按近一年的真实感受作答；提交后系统判定体质，您仍可在确认页微调。
+      共 {{ totalQuestionCount }} 题分 {{ groupCount }} 组，请按近一年的真实感受作答；提交后系统判定体质，您仍可在确认页微调。
     </p>
 
     <!-- 已完成：档案摘要 -->
@@ -210,20 +232,20 @@ async function onConfirmProfile() {
       </div>
       <p class="summary-hint">如需更新测评结果或手动调整画像，可使用下方按钮。</p>
       <div class="summary-actions">
-        <el-button type="primary" @click="startRetest">重新测评</el-button>
-        <el-button @click="openManualAdjust">手动调整</el-button>
+        <van-button type="primary" block @click="startRetest">重新测评</van-button>
+        <van-button block class="summary-actions__secondary" @click="openManualAdjust">手动调整</van-button>
       </div>
     </div>
 
     <!-- 分步问卷 -->
     <div v-else-if="phase === 'quiz'" class="page-card quiz-card">
       <div class="quiz-head">
-        <span class="quiz-step">第 {{ groupIndex + 1 }} / 3 组</span>
-        <el-button text type="primary" class="quiz-skip" :loading="saving" @click="onSkip">
+        <span class="quiz-step">第 {{ groupIndex + 1 }} / {{ groupCount }} 组</span>
+        <van-button type="primary" plain size="small" class="quiz-skip" :loading="saving" @click="onSkip">
           跳过测评
-        </el-button>
+        </van-button>
       </div>
-      <el-progress :percentage="progressPercent" :stroke-width="10" striped striped-flow />
+      <van-progress :percentage="progressPercent" :show-pivot="false" stroke-width="10" />
 
       <div class="question-list">
         <section
@@ -236,35 +258,42 @@ async function onConfirmProfile() {
             {{ q.text }}
           </h2>
           <p class="question-meta">
-            本题得分主要计入「{{ labelForConstitution(q.targetCode) }}」维度（1–5 分越高，该倾向越明显）。
+            本题得分主要计入「{{ labelForConstitution(q.targetCode) }}」维度（1–5 分越高，该倾向越明显）。题型：{{ q.source === 'core' ? '核心题' : '场景题' }}
           </p>
-          <el-radio-group v-model="answers[q.id - 1]" class="score-group">
-            <el-radio
-              v-for="opt in SCORE_OPTIONS"
-              :key="opt.score"
-              :value="opt.score"
-              border
-              class="score-radio"
+          <van-cell-group inset class="score-cell-group">
+            <van-radio-group
+              :model-value="answers[q.id - 1]"
+              @update:model-value="(v) => setAnswer(q.id - 1, v)"
             >
-              <span class="score-num">{{ opt.score }} 分</span>
-              <span class="score-label">{{ opt.label }}</span>
-            </el-radio>
-          </el-radio-group>
+              <van-cell
+                v-for="opt in SCORE_OPTIONS"
+                :key="opt.score"
+                :title="`${opt.score} 分`"
+                :label="opt.label"
+                clickable
+                @click="setAnswer(q.id - 1, opt.score)"
+              >
+                <template #right-icon>
+                  <van-radio :name="opt.score" />
+                </template>
+              </van-cell>
+            </van-radio-group>
+          </van-cell-group>
         </section>
       </div>
 
       <div class="quiz-nav">
-        <el-button :disabled="groupIndex === 0" @click="onPrevGroup">上一组</el-button>
-        <el-button type="primary" :loading="submitting" @click="onNextGroup">
-          {{ groupIndex < 2 ? '下一组' : '提交并查看结果' }}
-        </el-button>
+        <van-button :disabled="groupIndex === 0" @click="onPrevGroup">上一组</van-button>
+        <van-button type="primary" :loading="submitting" @click="onNextGroup">
+          {{ groupIndex < groupCount - 1 ? '下一组' : '提交并查看结果' }}
+        </van-button>
       </div>
     </div>
 
     <!-- 结果确认 -->
     <div v-else-if="phase === 'confirm'" class="page-card confirm-card">
       <div v-if="userStore.constitutionSurveyCompleted" class="confirm-back">
-        <el-button text @click="backToSummary">← 返回档案</el-button>
+        <van-button plain size="small" @click="backToSummary">← 返回档案</van-button>
       </div>
 
       <div class="result-hero" aria-live="polite">
@@ -276,42 +305,50 @@ async function onConfirmProfile() {
 
       <p class="result-brief">{{ resultBriefDisplay }}</p>
 
-      <el-form label-position="top" class="confirm-form">
-        <el-form-item label="手动切换体质（九种）">
-          <el-select v-model="pickCode" placeholder="请选择" style="width: 100%">
-            <el-option
-              v-for="c in CONSTITUTION_TYPES"
-              :key="c.code"
-              :label="c.label"
-              :value="c.code"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="养生季节">
-          <el-radio-group v-model="pickSeason" class="season-radio-group">
-            <el-radio
-              v-for="s in SEASON_OPTIONS"
-              :key="s.code"
-              :value="s.code"
-              border
-            >
-              {{ s.label }}
-            </el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
+      <van-cell-group inset title="手动切换体质（九种）" class="confirm-cell-group">
+        <van-radio-group v-model="pickCode">
+          <van-cell
+            v-for="c in CONSTITUTION_TYPES"
+            :key="c.code"
+            :title="c.label"
+            clickable
+            @click="pickCode = c.code"
+          >
+            <template #right-icon>
+              <van-radio :name="c.code" />
+            </template>
+          </van-cell>
+        </van-radio-group>
+      </van-cell-group>
+
+      <van-cell-group inset title="养生季节" class="confirm-cell-group season-group">
+        <div class="season-button-row" role="group" aria-label="养生季节">
+          <van-button
+            v-for="s in SEASON_OPTIONS"
+            :key="s.code"
+            size="small"
+            :aria-pressed="pickSeason === s.code"
+            :type="pickSeason === s.code ? 'primary' : 'default'"
+            :plain="pickSeason !== s.code"
+            class="season-pref-btn"
+            @click="pickSeason = s.code"
+          >
+            {{ s.label }}
+          </van-button>
+        </div>
+      </van-cell-group>
 
       <p v-if="isManualConstitutionPick" class="manual-mode-hint">
         您已切换至手动选择模式
       </p>
 
       <div class="confirm-actions">
-        <el-button type="primary" size="large" :loading="saving" @click="onConfirmProfile">
+        <van-button type="primary" block size="large" :loading="saving" @click="onConfirmProfile">
           确认并保存，进入首页
-        </el-button>
+        </van-button>
       </div>
       <p class="confirm-footnote">
-        系统初判为「{{ labelForConstitution(inferredCode) }}」，您可在上方下拉框中修改后保存。
+        系统初判为「{{ labelForConstitution(inferredCode) }}」，您可在上方列表中修改后保存。
       </p>
     </div>
   </div>
@@ -355,9 +392,13 @@ async function onConfirmProfile() {
 
 .summary-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+}
+
+.summary-actions__secondary {
+  margin-top: 0;
 }
 
 .quiz-card {
@@ -418,38 +459,8 @@ async function onConfirmProfile() {
   margin-right: 4px;
 }
 
-.score-group {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-xs);
-}
-
-.score-radio {
-  margin: 0 !important;
-  height: auto !important;
-  align-items: flex-start;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-}
-
-.score-radio :deep(.el-radio__label) {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  white-space: normal;
-  line-height: 1.4;
-}
-
-.score-num {
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.score-label {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+.score-cell-group {
+  margin-top: var(--space-xs);
 }
 
 .quiz-nav {
@@ -492,10 +503,17 @@ async function onConfirmProfile() {
   letter-spacing: 0.02em;
 }
 
-.season-radio-group {
+.season-button-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  justify-content: flex-start;
+}
+
+.season-pref-btn {
+  flex: 0 0 auto;
+  margin: 0;
 }
 
 .manual-mode-hint {
@@ -513,9 +531,15 @@ async function onConfirmProfile() {
   color: var(--color-text-primary);
 }
 
-.confirm-form {
-  max-width: 400px;
-  margin: 0 auto var(--space-lg);
+.confirm-cell-group {
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: var(--space-md);
+  text-align: left;
+}
+
+.season-group :deep(.van-cell-group__title) {
   text-align: left;
 }
 

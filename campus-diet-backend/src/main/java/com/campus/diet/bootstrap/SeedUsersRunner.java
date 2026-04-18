@@ -7,6 +7,7 @@ import com.campus.diet.mapper.SysUserMapper;
 import com.campus.diet.mapper.UserProfileMapper;
 import com.campus.diet.security.Roles;
 import com.campus.diet.service.SeasonUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -22,24 +23,36 @@ public class SeedUsersRunner implements ApplicationRunner {
     private final SysUserMapper sysUserMapper;
     private final UserProfileMapper userProfileMapper;
     private final PasswordEncoder passwordEncoder;
+    private final String adminSeedPassword;
+    private final String canteenSeedPassword;
+    private final String demoSeedPassword;
+    private final String studentSeedPassword;
 
     public SeedUsersRunner(
             SysUserMapper sysUserMapper,
             UserProfileMapper userProfileMapper,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            @Value("${campus.seed-users.admin-password:SeedAdmin#2026!}") String adminSeedPassword,
+            @Value("${campus.seed-users.canteen-password:SeedCanteen#2026!}") String canteenSeedPassword,
+            @Value("${campus.seed-users.demo-password:SeedDemo#2026!}") String demoSeedPassword,
+            @Value("${campus.seed-users.student-password:SeedStudent#2026!}") String studentSeedPassword) {
         this.sysUserMapper = sysUserMapper;
         this.userProfileMapper = userProfileMapper;
         this.passwordEncoder = passwordEncoder;
+        this.adminSeedPassword = adminSeedPassword;
+        this.canteenSeedPassword = canteenSeedPassword;
+        this.demoSeedPassword = demoSeedPassword;
+        this.studentSeedPassword = studentSeedPassword;
     }
 
     @Override
     public void run(ApplicationArguments args) {
-        ensureUser("admin", "admin123", Roles.ADMIN);
-        ensureUser("canteen", "canteen123", Roles.CANTEEN_MANAGER);
+        ensureUser("admin", adminSeedPassword, Roles.ADMIN);
+        ensureUser("canteen", canteenSeedPassword, Roles.CANTEEN_MANAGER);
         /** 与前台后台登录文案 canteen_manager 一致 */
-        ensureUser("canteen_manager", "canteen123", Roles.CANTEEN_MANAGER);
-        ensureUser("demo", "demo123", Roles.USER);
-        ensureUser("student", "123456", Roles.USER);
+        ensureUser("canteen_manager", canteenSeedPassword, Roles.CANTEEN_MANAGER);
+        ensureUser("demo", demoSeedPassword, Roles.USER);
+        ensureUser("student", studentSeedPassword, Roles.USER);
     }
 
     private void ensureUser(String username, String rawPassword, String role) {

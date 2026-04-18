@@ -6,8 +6,8 @@ import {
   fetchAdminUserList,
   fetchAdminUserDetail,
   patchAdminUserStatus,
-} from '@/api/adminUser.js'
-import { setUserStatus } from '@/utils/adminUserStatus.js'
+} from '@/api/adminUser'
+import { setUserStatus } from '@/utils/adminUserStatus'
 
 const userStore = useUserStore()
 

@@ -70,7 +70,7 @@ public class CampusSceneController {
             @RequestParam(required = false) String keyword) {
         boolean recOn = recommendEnabled == null || Boolean.TRUE.equals(recommendEnabled);
         boolean person = Boolean.TRUE.equals(personalized) && recOn;
-        PageResult<Recipe> pr = recipeRecommendService.recommendFeedPage(
+        PageResult<RecipeCardDto> pr = recipeRecommendService.recommendFeedCardPage(
                 page,
                 pageSize,
                 sceneTag,
@@ -78,10 +78,9 @@ public class CampusSceneController {
                 person,
                 seasonCode,
                 keyword);
-        List<RecipeCardDto> cards = pr.getRecords().stream().map(RecipeCardDto::from).collect(Collectors.toList());
         Map<String, Object> data = new HashMap<>();
-        data.put("records", cards);
-        data.put("list", cards);
+        data.put("records", pr.getRecords());
+        data.put("list", pr.getRecords());
         data.put("hasMore", pr.isHasMore());
         data.put("total", pr.getTotal());
         return ApiResponse.ok(data);

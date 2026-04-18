@@ -12,7 +12,7 @@ import {
   normalizeFavoriteAiPlans,
   deleteRecipeFavorites,
   deleteAiPlanFavorites,
-} from '@/api/profile.js'
+} from '@/api/profile'
 
 const route = useRoute()
 const router = useRouter()
@@ -650,11 +650,15 @@ function goPreference() {
   border: 1px solid var(--color-border);
   background: var(--color-bg-surface);
   cursor: pointer;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .fav-row:hover {
-  box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-border-hover-primary);
+  box-shadow: var(--shadow-card-hover-float);
   transform: translateY(-1px);
 }
 
@@ -693,8 +697,8 @@ function goPreference() {
 }
 
 .fav-row__placeholder--ai {
-  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
-  color: #4f46e5;
+  background: linear-gradient(135deg, #ecfdf5, #bbf7d0);
+  color: var(--color-primary-dark);
 }
 
 .fav-row__body {

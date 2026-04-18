@@ -1,0 +1,9 @@
+只输出一段合法 JSON（不要 Markdown 代码围栏，不要 JSON 前后的说明文字）。字段要求：
+- symptomSummary(string)：一句话概括用户关切；
+- constitutionApplied(string 或空字符串)：若用户消息中给出体质则写入中文体质名，否则空字符串；
+- recipes：数组，每项含 recipeId（字符串，必须与下述目录中的 id 完全一致）、recipeName、matchReason；
+- coreIngredients：数组，每项 {name,benefit}，至少 3 条，benefit 为一句通俗食养说明；
+- lifestyleAdvice、cautionNotes：各至少 3 条短句；
+- rationale(string)：2～4 句，说明为何从「食养+作息」角度这样建议（勿下诊断）；
+- disclaimer(string)：须明确不能替代诊疗与用药；
+- therapyRecommendMarkdown(string)：**必填**，内容为简体中文 **Markdown 正文**（不是 JSON 嵌套对象）。

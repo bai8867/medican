@@ -1,13 +1,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { fetchScenes } from '@/api/scenes.js'
-import { SCENE_THERAPY_SEED } from '@/data/sceneTherapySeed.js'
-import { getUnifiedRecipeMockStore } from '@/data/unifiedRecipeMockStore.js'
+import { fetchScenes } from '@/api/scenes'
+import { SCENE_THERAPY_SEED } from '@/data/sceneTherapySeed'
+import { getUnifiedRecipeMockStore } from '@/data/unifiedRecipeMockStore'
 import {
   fetchResolvedWeeklyCalendar,
   buildSceneWeekMatchCounts,
-} from '@/utils/sceneCalendarBinding.js'
+} from '@/utils/sceneCalendarBinding'
 
 const router = useRouter()
 const scenes = ref([])

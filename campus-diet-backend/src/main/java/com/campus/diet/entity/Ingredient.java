@@ -17,6 +17,8 @@ public class Ingredient {
     private String name;
     private String category;
     private String note;
+    /** 是否在药膳表单与食材下拉中展示（禁用则隐藏）。 */
+    private Boolean enabled;
     private String imageUrl;
     private LocalDateTime createdAt;
     @TableLogic

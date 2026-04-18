@@ -35,6 +35,19 @@ public class LlmChatClient {
             String apiKey,
             String model,
             List<Map<String, String>> messages) throws Exception {
+        return chatCompletionsContent(upstreamUrl, apiKey, model, messages, null);
+    }
+
+    /**
+     * 方案 C 预留：将 {@code extraTopLevelFields} 合并进请求 JSON 顶层（如 {@code tools}、{@code tool_choice}、
+     * {@code response_format}）。键与上游 OpenAI 兼容接口对齐；未启用时传 {@code null}。
+     */
+    public String chatCompletionsContent(
+            String upstreamUrl,
+            String apiKey,
+            String model,
+            List<Map<String, String>> messages,
+            Map<String, Object> extraTopLevelFields) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         if (apiKey != null && !apiKey.trim().isEmpty()) {
@@ -43,6 +56,11 @@ public class LlmChatClient {
         Map<String, Object> body = new HashMap<>();
         body.put("model", model);
         body.put("messages", messages);
+        if (extraTopLevelFields != null && !extraTopLevelFields.isEmpty()) {
+            for (Map.Entry<String, Object> e : extraTopLevelFields.entrySet()) {
+                body.put(e.getKey(), e.getValue());
+            }
+        }
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
         ResponseEntity<String> resp = restTemplate.postForEntity(upstreamUrl, entity, String.class);
         if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {

@@ -1,0 +1,10 @@
+spring:
+  sql:
+    init:
+      mode: never
+
+campus:
+  diet:
+    seed-mock-recipes: false
+    seed-demo-interactions: false
+    seed-weekly-calendar: false

@@ -1,7 +1,11 @@
-import request from './request.js'
-import { MOCK_NO_MATCH } from './mockTypes.js'
+import request from './request'
+import { MOCK_NO_MATCH } from './mockTypes'
 import { DISMISS_LS_KEY } from '@/utils/recommendDismiss'
-import { fetchProfileFavorites } from './profile.js'
+import {
+  fetchProfileFavorites,
+  type ProfileFavoritesPack,
+  type ProfileRecipeFavoriteRow,
+} from './profile'
 
 export type UserPreferencesPayload = {
   seasonCode?: string
@@ -43,8 +47,8 @@ function parseSurveyScoresToAnswers(jsonStr: unknown): number[] | null {
  * 仅更新季节时：若 profile 中已有问卷分数 JSON，则重新 POST 问卷以写入 seasonCode。
  */
 async function syncSeasonViaSurveyIfPossible(seasonCode: string) {
-  const prof = await request.get('/user/profile', { skipGlobalMessage: true })
-  const answers = parseSurveyScoresToAnswers(prof?.surveyScoresJson)
+  const prof = await request.get<Record<string, unknown>>('/user/profile', { skipGlobalMessage: true })
+  const answers = parseSurveyScoresToAnswers(prof.surveyScoresJson)
   if (!answers) return
   await request.post(
     '/user/constitution/survey',
@@ -80,13 +84,24 @@ function readLocalBrowseHistoryExport(): unknown[] {
   }
 }
 
+/** 个人数据导出聚合结构（无独立后端导出接口时的前端聚合结果） */
+export type UserPersonalDataExport = {
+  exportedAt: string
+  profile: Record<string, unknown>
+  /** 与历史导出一致：仅药膳收藏行（完整双列表见 {@link ProfileFavoritesPack}） */
+  favorites: ProfileRecipeFavoriteRow[]
+  browseHistory: unknown[]
+  dislikes: string[]
+}
+
 /** 后端无个人数据导出接口：聚合 profile / 收藏 / 本机浏览历史 */
-export async function exportUserPersonalData() {
+export async function exportUserPersonalData(): Promise<UserPersonalDataExport> {
+  const emptyFavorites: ProfileFavoritesPack = { recipeFavorites: [], aiPlanFavorites: [] }
   const [profile, favPack] = await Promise.all([
-    request.get('/user/profile', { skipGlobalMessage: true }),
-    fetchProfileFavorites().catch(() => ({ recipeFavorites: [] as unknown[] })),
+    request.get<Record<string, unknown>>('/user/profile', { skipGlobalMessage: true }),
+    fetchProfileFavorites().catch((): ProfileFavoritesPack => emptyFavorites),
   ])
-  const favRaw = favPack?.recipeFavorites ?? []
+  const favorites: ProfileRecipeFavoriteRow[] = favPack.recipeFavorites
   const records = readLocalBrowseHistoryExport()
   let dislikes: string[] = []
   try {
@@ -99,7 +114,7 @@ export async function exportUserPersonalData() {
   return {
     exportedAt: new Date().toISOString(),
     profile,
-    favorites: favRaw,
+    favorites,
     browseHistory: records,
     dislikes,
   }

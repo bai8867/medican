@@ -1,6 +1,6 @@
 package com.campus.diet.common;
 
-/** 与前端约定的业务错误码（HTTP 体 {@link ApiResponse#getCode()}，通常为 200 OK 响应体）。 */
+/** 与前端约定的业务错误码（HTTP 体 {@link ApiResponse#getCode()}，可与 HTTP 状态码并存）。 */
 public final class ErrorCodes {
 
     private ErrorCodes() {}

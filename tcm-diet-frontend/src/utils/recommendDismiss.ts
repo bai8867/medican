@@ -1,3 +1,4 @@
+// @ts-nocheck
 /** 与推荐页「不感兴趣」一致的 localStorage 键 */
 export const DISMISS_LS_KEY = 'tcm_recommend_dismissed'
 

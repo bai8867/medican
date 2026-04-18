@@ -158,12 +158,12 @@ function goProfile() {
 
 .nav__system-name {
   display: block;
-  font-family: 'SimSun', 'Songti SC', 'STSong', 'NSimSun', serif;
+  font-family: var(--font-serif);
   font-size: var(--font-size-md);
   font-weight: 600;
-  line-height: 1.35;
-  color: #6b9e47;
-  letter-spacing: 0.02em;
+  line-height: var(--line-height-tight);
+  color: var(--color-primary-dark);
+  letter-spacing: 0.04em;
 }
 
 .nav__menu {
@@ -188,14 +188,19 @@ function goProfile() {
   cursor: pointer;
   text-align: left;
   transition:
-    background 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease;
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
 .nav__item:hover {
   background: color-mix(in srgb, var(--color-primary) 8%, transparent);
   color: var(--color-primary);
+}
+
+.nav__item:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .nav__item.is-active {
@@ -309,5 +314,15 @@ function goProfile() {
 .nav__const-link:hover {
   background: color-mix(in srgb, var(--color-primary) 8%, transparent);
   border-color: var(--color-primary);
+}
+
+.nav__const-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.nav__item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 </style>

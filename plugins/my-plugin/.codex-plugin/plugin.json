@@ -1,0 +1,43 @@
+{
+  "name": "my-plugin",
+  "version": "0.1.0",
+  "description": "Starter plugin scaffold for local publish and testing.",
+  "author": {
+    "name": "xwj.git",
+    "email": "baidexwj@gmail.com",
+    "url": "https://github.com/bai8867"
+  },
+  "homepage": "https://github.com/bai8867/medican",
+  "repository": "https://github.com/bai8867/medican.git",
+  "license": "MIT",
+  "keywords": [
+    "starter",
+    "productivity"
+  ],
+  "skills": "./skills/",
+  "hooks": "./hooks.json",
+  "mcpServers": "./.mcp.json",
+  "apps": "./.app.json",
+  "interface": {
+    "displayName": "My Plugin",
+    "shortDescription": "Local starter plugin for Cursor/Codex.",
+    "longDescription": "A minimal plugin scaffold with skills, hooks, MCP and app manifests for quick local testing.",
+    "developerName": "baide",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/bai8867/medican",
+    "privacyPolicyURL": "https://github.com/bai8867/medican",
+    "termsOfServiceURL": "https://github.com/bai8867/medican",
+    "defaultPrompt": [
+      "Summarize today's project status.",
+      "Generate a release checklist for this repo.",
+      "Draft a commit message for current changes."
+    ],
+    "brandColor": "#3B82F6",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
+  }
+}

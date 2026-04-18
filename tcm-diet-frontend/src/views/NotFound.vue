@@ -1,5 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { Button as VanButton } from 'vant'
 
 const router = useRouter()
 
@@ -14,8 +15,8 @@ function goMode() {
       <h1 class="not-found__title">页面不存在</h1>
       <p class="not-found__hint">您访问的地址有误或页面已被移除（404）。</p>
       <div class="not-found__actions">
-        <el-button type="primary" @click="goMode">返回模式选择</el-button>
-        <el-button @click="router.replace({ path: '/home' })">去推荐首页</el-button>
+        <van-button type="primary" @click="goMode">返回模式选择</van-button>
+        <van-button @click="router.replace({ path: '/home' })">去推荐首页</van-button>
       </div>
     </div>
   </div>

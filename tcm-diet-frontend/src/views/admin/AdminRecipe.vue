@@ -7,6 +7,7 @@ import {
   fetchAdminRecipeDetail,
   createAdminRecipe,
   updateAdminRecipe,
+  updateAdminRecipeStatus,
   deleteAdminRecipe,
   batchDeleteAdminRecipes,
   uploadAdminRecipeCoverDataUrl,
@@ -15,9 +16,9 @@ import {
   ADMIN_SEASON_FORM_OPTIONS,
   ADMIN_SEASON_FILTER_OPTIONS,
   ADMIN_RECIPE_STATUS,
-} from '@/api/adminRecipe.js'
-import { DEFAULT_TABOO } from '@/api/recipe.js'
-import { fetchIngredientList } from '@/api/ingredient.js'
+} from '@/api/adminRecipe'
+import { DEFAULT_TABOO } from '@/api/recipe'
+import { fetchIngredientList } from '@/api/ingredient'
 
 const BUCKET_DEFS = [
   { key: 'main', label: '主料' },
@@ -499,17 +500,14 @@ async function onBatchDelete() {
 async function onShelfSwitch(row, online) {
   const next = online ? ADMIN_RECIPE_STATUS.ON : ADMIN_RECIPE_STATUS.OFF
   if (row.status === next) return
+  const prev = row.status
+  row.status = next
   statusBusyId.value = row.id
   try {
-    const data = await fetchAdminRecipeDetail(row.id)
-    const recipe = data?.recipe || data
-    if (!recipe) return
-    const payload = recipeDetailToPayload(recipe, { status: next })
-    await updateAdminRecipe(row.id, payload)
+    await updateAdminRecipeStatus(row.id, next === ADMIN_RECIPE_STATUS.OFF ? 0 : 1)
     ElMessage.success(online ? '已上架' : '已下架')
-    await loadTable()
   } catch {
-    await loadTable()
+    row.status = prev
   } finally {
     statusBusyId.value = null
   }

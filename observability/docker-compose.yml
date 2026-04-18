@@ -1,0 +1,53 @@
+# Prometheus + Alertmanager + Grafana（方案 A）
+# 前置：本机已启动 campus-diet-backend（默认 11888，且可被子网访问；Docker 内用 host.docker.internal）。
+# 启动：在 observability 目录执行 docker compose up -d
+# 访问：Prometheus http://localhost:9090 ，Grafana http://localhost:3000 （默认 admin / 环境变量 GRAFANA_ADMIN_PASSWORD）
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    networks: [obs]
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "9093:9093"
+    networks: [obs]
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_DEFAULT_LANGUAGE: zh-Hans
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks: [obs]
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  obs:
+    name: medican_obs

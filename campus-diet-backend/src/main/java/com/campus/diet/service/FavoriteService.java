@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,8 +41,11 @@ public class FavoriteService {
         f.setUserId(userId);
         f.setRecipeId(recipeId);
         userFavoriteMapper.insert(f);
-        r.setCollectCount(r.getCollectCount() == null ? 1 : r.getCollectCount() + 1);
-        recipeMapper.updateById(r);
+        recipeMapper.update(
+                null,
+                Wrappers.<Recipe>lambdaUpdate()
+                        .eq(Recipe::getId, recipeId)
+                        .setSql("collect_count = collect_count + 1"));
     }
 
     @Transactional
@@ -48,11 +53,11 @@ public class FavoriteService {
         int rows = userFavoriteMapper.delete(
                 Wrappers.<UserFavorite>lambdaQuery().eq(UserFavorite::getUserId, userId).eq(UserFavorite::getRecipeId, recipeId));
         if (rows > 0) {
-            Recipe r = recipeMapper.selectById(recipeId);
-            if (r != null && r.getCollectCount() != null && r.getCollectCount() > 0) {
-                r.setCollectCount(r.getCollectCount() - 1);
-                recipeMapper.updateById(r);
-            }
+            recipeMapper.update(
+                    null,
+                    Wrappers.<Recipe>lambdaUpdate()
+                            .eq(Recipe::getId, recipeId)
+                            .setSql("collect_count = GREATEST(collect_count - 1, 0)"));
         }
     }
 
@@ -64,8 +69,15 @@ public class FavoriteService {
         int total = favs.size();
         int from = Math.max(0, (page - 1) * pageSize);
         List<UserFavorite> slice = from >= total ? List.of() : favs.subList(from, Math.min(total, from + pageSize));
-        List<Recipe> records = slice.stream()
-                .map(f -> recipeMapper.selectById(f.getRecipeId()))
+        List<Long> recipeIds = slice.stream()
+                .map(UserFavorite::getRecipeId)
+                .collect(Collectors.toList());
+        Map<Long, Recipe> byId = recipeIds.isEmpty()
+                ? Map.of()
+                : recipeMapper.selectBatchIds(recipeIds).stream()
+                .collect(Collectors.toMap(Recipe::getId, Function.identity(), (a, b) -> a));
+        List<Recipe> records = recipeIds.stream()
+                .map(byId::get)
                 .filter(r -> r != null)
                 .collect(Collectors.toList());
         return new PageResult<>(records, total, page, pageSize, from + pageSize < total);

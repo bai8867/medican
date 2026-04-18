@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+# 最小权限 + 并发取消：减少 GITHUB_TOKEN 暴露面，并避免同一分支堆积多次完整 CI（GitHub 文档：permissions / concurrency）
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tcm-diet-frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: tcm-diet-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit (critical only; high 如 xlsx 见 README)
+        run: npm audit --registry https://registry.npmjs.org --audit-level=critical
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build (dist for preview E2E + size report)
+        env:
+          FRONTEND_BUILD_GUARD: "1"
+          FRONTEND_BUILD_MAX_SECONDS: "300"
+        run: |
+          mkdir -p ../ci-artifacts/frontend
+          bash ../scripts/run-frontend-build-with-timing.sh 2>&1 | tee ../ci-artifacts/frontend/build-with-timing.log
+
+      - name: E2E (CI gate, vite preview — no backend)
+        run: npm run test:e2e:ci
+
+      - name: Report dist size & guard
+        env:
+          FRONTEND_DIST_GUARD: "1"
+          # 在拆包/懒加载带来稳定体积下降后略收紧；若 job 失败请先对比 artifact 内 ci-metrics-summary.txt
+          FRONTEND_DIST_MAX_TOTAL_BYTES: "8800000"
+          FRONTEND_DIST_MAX_LARGEST_JS_BYTES: "1032192"
+        run: |
+          mkdir -p ../ci-artifacts/frontend
+          bash ../scripts/report-frontend-dist-size.sh 2>&1 | tee ../ci-artifacts/frontend/dist-size-report.log
+
+      - name: Summarize frontend CI metrics
+        run: |
+          {
+            echo "# Frontend CI metrics snapshot"
+            echo "repository=${{ github.repository }} run_id=${{ github.run_id }} attempt=${{ github.run_attempt }}"
+            echo
+            echo "## Build timing"
+            grep -E '^FRONTEND_BUILD_SECONDS=' ../ci-artifacts/frontend/build-with-timing.log || true
+            echo
+            echo "## Dist bytes"
+            grep -E '^DIST_(TOTAL|LARGEST_JS)_BYTES=' ../ci-artifacts/frontend/dist-size-report.log || true
+          } > ../ci-artifacts/frontend/ci-metrics-summary.txt
+
+      - name: Upload frontend CI metrics (build + dist)
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-ci-metrics
+          path: ci-artifacts/frontend/
+          if-no-files-found: error
+          retention-days: 21
+
+  backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: campus-diet-backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "11"
+          cache: maven
+
+      - name: Security baseline checks
+        run: bash ../scripts/check-prod-security-baseline.sh
+
+      - name: Run tests
+        run: chmod +x ./mvnw && ./mvnw -B -ntp test

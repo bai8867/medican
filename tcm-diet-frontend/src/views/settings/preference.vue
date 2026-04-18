@@ -1,168 +1,136 @@
-<script setup>
-import { ref, computed, watch } from 'vue'
+<script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  showToast,
   NavBar as VanNavBar,
-  Cell as VanCell,
   CellGroup as VanCellGroup,
-  Checkbox,
-  CheckboxGroup,
-  Radio,
-  RadioGroup,
-  Button as VanButton,
+  Cell as VanCell,
+  Switch as VanSwitch,
+  CheckboxGroup as VanCheckboxGroup,
+  Checkbox as VanCheckbox,
+  RadioGroup as VanRadioGroup,
+  Radio as VanRadio,
 } from 'vant'
 import { useUserStore } from '@/stores/user'
 import {
   CAMPUS_LOCATION_OPTIONS,
-  BUDGET_TIER_OPTIONS,
   ALLERGY_TAG_OPTIONS,
-} from '@/data/campusWeeklyCalendarSeed.js'
+  BUDGET_TIER_OPTIONS,
+} from '@/data/campusWeeklyCalendarSeed'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-const campusIds = ref([...(userStore.preferences?.campusLocationIds || [])])
-const budgetTier = ref(userStore.preferences?.budgetTier || 'regular')
-const allergyIds = ref([...(userStore.preferences?.allergyTags || [])])
-
-const dirty = ref(false)
-
-watch([campusIds, budgetTier, allergyIds], () => {
-  dirty.value = true
+const avoidSpicy = computed({
+  get: () => Boolean(userStore.preferences.avoidSpicy),
+  set: (v: boolean) => userStore.setPreferences({ avoidSpicy: v }),
 })
 
-const budgetLabel = computed(() => {
-  const hit = BUDGET_TIER_OPTIONS.find((o) => o.id === budgetTier.value)
-  return hit?.label || '常规型'
+const avoidCold = computed({
+  get: () => Boolean(userStore.preferences.avoidCold),
+  set: (v: boolean) => userStore.setPreferences({ avoidCold: v }),
 })
 
-function syncFromStore() {
-  campusIds.value = [...(userStore.preferences?.campusLocationIds || [])]
-  budgetTier.value = userStore.preferences?.budgetTier || 'regular'
-  allergyIds.value = [...(userStore.preferences?.allergyTags || [])]
-  dirty.value = false
-}
+const campusLocationIds = computed({
+  get: () => [...(userStore.preferences.campusLocationIds || [])],
+  set: (v: string[]) => userStore.setPreferences({ campusLocationIds: [...v] }),
+})
 
-watch(
-  () => userStore.preferences,
-  () => {
-    if (!dirty.value) syncFromStore()
-  },
-  { deep: true },
-)
+const allergyTags = computed({
+  get: () => [...(userStore.preferences.allergyTags || [])],
+  set: (v: string[]) => userStore.setPreferences({ allergyTags: [...v] }),
+})
 
-function save() {
-  userStore.setPreferences({
-    campusLocationIds: [...campusIds.value],
-    budgetTier: budgetTier.value,
-    allergyTags: [...allergyIds.value],
-  })
-  dirty.value = false
-  showToast('偏好已保存')
-}
-
-function onBack() {
-  if (dirty.value) save()
-  router.back()
-}
+const budgetTier = computed({
+  get: () => String(userStore.preferences.budgetTier || 'regular'),
+  set: (v: string) => userStore.setPreferences({ budgetTier: v }),
+})
 </script>
 
 <template>
-  <div class="pref-page">
-    <VanNavBar title="饮食偏好" left-arrow fixed placeholder @click-left="onBack" />
+  <div class="settings-sub settings-sub--scroll">
+    <van-nav-bar title="饮食偏好" left-arrow fixed placeholder @click-left="router.back()" />
+    <div class="body">
+      <p class="hint">用于首页推荐与校园药膳日历的过滤与排序，数据保存在本机画像中。</p>
 
-    <p class="pref-page__intro">
-      以下信息与体质、季节画像合并用于首页、场景页与本周药膳日历的排序与过滤。
-    </p>
+      <van-cell-group inset title="口味与禁忌">
+        <van-cell title="尽量避开辛辣" center>
+          <template #right-icon>
+            <van-switch v-model="avoidSpicy" size="20px" />
+          </template>
+        </van-cell>
+        <van-cell title="尽量避开生冷" center>
+          <template #right-icon>
+            <van-switch v-model="avoidCold" size="20px" />
+          </template>
+        </van-cell>
+      </van-cell-group>
 
-    <VanCellGroup inset title="常去校区 / 食堂（多选）">
-      <VanCell>
-        <CheckboxGroup v-model="campusIds" direction="horizontal" class="pref-page__tags">
-          <Checkbox
-            v-for="opt in CAMPUS_LOCATION_OPTIONS"
-            :key="opt.id"
-            :name="opt.id"
-            shape="square"
-            class="pref-page__cb"
-          >
-            {{ opt.label }}
-          </Checkbox>
-        </CheckboxGroup>
-      </VanCell>
-    </VanCellGroup>
+      <van-cell-group inset title="常去校区 / 食堂">
+        <van-cell>
+          <van-checkbox-group v-model="campusLocationIds" class="chk-grid">
+            <van-checkbox
+              v-for="o in CAMPUS_LOCATION_OPTIONS"
+              :key="o.id"
+              :name="o.id"
+              shape="square"
+              class="chk-item"
+            >
+              {{ o.label }}
+            </van-checkbox>
+          </van-checkbox-group>
+        </van-cell>
+      </van-cell-group>
 
-    <VanCellGroup inset title="预算档位" class="pref-page__block">
-      <VanCell title="当前选择" :value="budgetLabel" />
-      <VanCell>
-        <RadioGroup v-model="budgetTier" direction="horizontal">
-          <Radio v-for="opt in BUDGET_TIER_OPTIONS" :key="opt.id" :name="opt.id" class="pref-page__radio">
-            {{ opt.label }}
-          </Radio>
-        </RadioGroup>
-      </VanCell>
-    </VanCellGroup>
+      <van-cell-group inset title="预算档位">
+        <van-radio-group v-model="budgetTier">
+          <van-cell v-for="o in BUDGET_TIER_OPTIONS" :key="o.id" clickable @click="budgetTier = o.id">
+            <template #title>
+              <van-radio :name="o.id">{{ o.label }}</van-radio>
+            </template>
+          </van-cell>
+        </van-radio-group>
+      </van-cell-group>
 
-    <VanCellGroup inset title="忌口 / 过敏源（多选）" class="pref-page__block">
-      <VanCell>
-        <CheckboxGroup v-model="allergyIds" direction="horizontal" class="pref-page__tags pref-page__tags--wrap">
-          <Checkbox
-            v-for="opt in ALLERGY_TAG_OPTIONS"
-            :key="opt.id"
-            :name="opt.id"
-            shape="square"
-            class="pref-page__cb"
-          >
-            {{ opt.label }}
-          </Checkbox>
-        </CheckboxGroup>
-      </VanCell>
-    </VanCellGroup>
-
-    <div class="pref-page__actions">
-      <VanButton type="primary" block round @click="save">保存偏好</VanButton>
+      <van-cell-group inset title="忌口 / 过敏（关键词匹配）">
+        <van-cell>
+          <van-checkbox-group v-model="allergyTags" class="chk-grid">
+            <van-checkbox
+              v-for="o in ALLERGY_TAG_OPTIONS"
+              :key="o.id"
+              :name="o.id"
+              shape="square"
+              class="chk-item"
+            >
+              {{ o.label }}
+            </van-checkbox>
+          </van-checkbox-group>
+        </van-cell>
+      </van-cell-group>
     </div>
   </div>
 </template>
 
 <style scoped>
-.pref-page {
-  min-height: 100%;
-  padding-bottom: 32px;
-  background: var(--color-bg-page, #f7f7f7);
+.body {
+  padding-bottom: 24px;
 }
 
-.pref-page__intro {
-  margin: 12px 16px 8px;
+.hint {
+  margin: 12px 16px;
   font-size: 13px;
-  line-height: 1.55;
   color: var(--color-text-secondary);
+  line-height: 1.5;
 }
 
-.pref-page__block {
-  margin-top: 12px;
-}
-
-.pref-page__tags {
+.chk-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 10px 16px;
   padding: 4px 0;
 }
 
-.pref-page__tags--wrap {
-  gap: 10px 14px;
-}
-
-.pref-page__cb {
+.chk-item {
   margin: 0;
-}
-
-.pref-page__radio {
-  margin-right: 12px;
-}
-
-.pref-page__actions {
-  padding: 20px 16px 8px;
 }
 </style>

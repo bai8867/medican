@@ -1,6 +1,10 @@
 package com.campus.diet.controller.admin;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
+import com.baomidou.mybatisplus.core.metadata.TableInfo;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.campus.diet.common.ApiResponse;
 import com.campus.diet.common.BizException;
@@ -66,12 +70,46 @@ public class AdminRecipeController {
         return ApiResponse.ok(recipeMapper.selectById(id));
     }
 
+    @PatchMapping("/{id}/status")
+    public ApiResponse<Recipe> updateStatus(@PathVariable long id, @RequestBody RecipeStatusBody body) {
+        SecurityUtils.requireContentManager();
+        int status = body == null || body.getStatus() == null ? 1 : body.getStatus();
+        // 非 Lambda 的 UpdateWrapper，避免仅 Mock Mapper 时 MP 未初始化 lambda 列缓存（见 AdminRecipeControllerPatchStatusWebMvcTest）。
+        // 列名优先来自 TableInfo（与全局命名策略一致）；元数据未就绪时回退与 schema.sql 一致的 id/status。
+        String pkCol = recipePkColumnName();
+        String statusCol = recipeStatusColumnName();
+        recipeMapper.update(
+                null,
+                Wrappers.<Recipe>update()
+                        .eq(pkCol, id)
+                        .set(statusCol, status == 0 ? 0 : 1));
+        return ApiResponse.ok(recipeMapper.selectById(id));
+    }
+
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable long id) {
         SecurityUtils.requireContentManager();
         sceneRecipeMapper.unlinkByRecipe(id);
         recipeMapper.deleteById(id);
         return ApiResponse.ok();
+    }
+
+    private static String recipePkColumnName() {
+        TableInfo ti = TableInfoHelper.getTableInfo(Recipe.class);
+        return ti == null ? "id" : ti.getKeyColumn();
+    }
+
+    private static String recipeStatusColumnName() {
+        TableInfo ti = TableInfoHelper.getTableInfo(Recipe.class);
+        if (ti == null) {
+            return "status";
+        }
+        for (TableFieldInfo f : ti.getFieldList()) {
+            if ("status".equals(f.getProperty())) {
+                return f.getColumn();
+            }
+        }
+        return "status";
     }
 
     private void linkScenes(long recipeId, List<Long> sceneIds) {
@@ -115,5 +153,10 @@ public class AdminRecipeController {
             r.setStatus(status == null ? 1 : status);
             return r;
         }
+    }
+
+    @Data
+    public static class RecipeStatusBody {
+        private Integer status;
     }
 }

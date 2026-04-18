@@ -8,8 +8,16 @@ Python 3.8+（标准库 json / time / sys / urllib）
   python test_integration.py
   （仅依赖 Python 3.8+ 标准库 + urllib，无需安装 requests）
 
+Windows 说明:
+  PowerShell 使用 `> log.txt` 重定向时，控制台管道常把输出存成 UTF-16 LE，中文易乱码。
+  需要 UTF-8 文本日志时建议用 cmd 一次执行，例如:
+    cmd /c "chcp 65001>nul && python test_integration.py > log.txt"
+  或直接让脚本在终端里打印（不重定向），并尽量使用 Windows Terminal。
+
 环境变量（可选，覆盖下方配置区）:
   BASE_URL, TEST_USERNAME 或 TEST_USER, TEST_PASSWORD, ADMIN_USERNAME, ADMIN_PASSWORD,
+  STUDENT_USERNAME, STUDENT_PASSWORD（权限越权用例；默认对齐 SeedUsersRunner 的 student 账号）,
+  STUDENT_FALLBACK_USERNAME, STUDENT_FALLBACK_PASSWORD（student 不存在时的回退，默认 demo）,
   TEST_USER_ID, RECIPE_ID_FOR_FAVORITE
 """
 
@@ -24,6 +32,20 @@ import urllib.request
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from urllib.parse import urlencode
 
+
+def _configure_stdio_utf8_on_windows() -> None:
+    """在 Windows 交互式终端下尽量使用 UTF-8 文本流（对 PowerShell `>` 重定向无效，见文件头说明）。"""
+    if sys.platform != "win32":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, OSError, ValueError):
+            pass
+
+
+_configure_stdio_utf8_on_windows()
+
 # ---------------------------------------------------------------------------
 # 配置区（可按环境修改；环境变量优先）
 # ---------------------------------------------------------------------------
@@ -33,6 +55,11 @@ TEST_USERNAME = os.environ.get("TEST_USERNAME") or os.environ.get("TEST_USER", "
 TEST_PASSWORD = os.environ.get("TEST_PASSWORD", "admin123")
 ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
+STUDENT_USERNAME = os.environ.get("STUDENT_USERNAME", "student")
+STUDENT_PASSWORD = os.environ.get("STUDENT_PASSWORD", "SeedStudent#2026!")
+# 当 student 尚未写入库时，可回退用 demo（同为 USER）做越权断言
+STUDENT_FALLBACK_USERNAME = os.environ.get("STUDENT_FALLBACK_USERNAME", "demo")
+STUDENT_FALLBACK_PASSWORD = os.environ.get("STUDENT_FALLBACK_PASSWORD", "SeedDemo#2026!")
 TEST_USER_ID = int(os.environ.get("TEST_USER_ID", "1"))
 RECIPE_ID_FOR_FAVORITE = int(os.environ.get("RECIPE_ID_FOR_FAVORITE", "1"))
 REQUEST_TIMEOUT = float(os.environ.get("REQUEST_TIMEOUT", "120"))
@@ -56,10 +83,13 @@ PATH_SCENES_LIST = "/api/scenes"
 PATH_SCENE_RECIPES = "/api/scenes/{id}/recipes"
 PATH_ADMIN_RECIPE = "/api/admin/recipes"
 PATH_ADMIN_DASHBOARD = "/api/admin/dashboard"
+PATH_ADMIN_SYSTEM_FLAGS = "/api/admin/system/flags"
+PATH_ADMIN_SYSTEM_RECOMMEND = "/api/admin/system/recommend"
+PATH_ADMIN_SYSTEM_AI = "/api/admin/system/ai"
 
-# 气虚质倾向：九题顺序 pinghe,qixu,yangxu,yinxu,tanshi,shire,xueyu,qiyu,tebing
-ANSWERS_QIXU = [2, 5, 2, 2, 2, 2, 2, 2, 2]
-ANSWERS_YINXU = [2, 2, 2, 5, 2, 2, 2, 2, 2]
+# legacy-v1 九题顺序：qixu,yangxu,yinxu,tanshi,shire,xueyu,qiyu,tebing,pinghe
+ANSWERS_QIXU = [5, 2, 2, 2, 2, 2, 2, 2, 2]
+ANSWERS_YINXU = [2, 2, 5, 2, 2, 2, 2, 2, 2]
 
 # ---------------------------------------------------------------------------
 # 终端颜色（Windows 10+ 控制台支持 ANSI）
@@ -211,6 +241,33 @@ def _auth_headers(token: Optional[str]) -> Dict[str, str]:
     if not token:
         return {}
     return {"Authorization": f"Bearer {token}"}
+
+
+def _login_token(http: HttpSession, username: str, password: str) -> Optional[str]:
+    """返回 JWT；失败时返回 None。兼容 /api/auth/login 与 /api/login。"""
+    candidates = [PATH_LOGIN, "/api/login"]
+    last: Optional[_HttpResp] = None
+    for path in candidates:
+        last = http.post(
+            BASE_URL + path,
+            data=json.dumps({"username": username, "password": password}),
+            timeout=REQUEST_TIMEOUT,
+        )
+        if last.status_code != 404:
+            break
+    if last is None:
+        return None
+    code, data = _unwrap_api_json(last)
+    if code == 200 and isinstance(data, dict) and data.get("token"):
+        return str(data["token"])
+    return None
+
+
+def _recommend_record_list(data: Any) -> List[Any]:
+    if not isinstance(data, dict):
+        return []
+    raw = data.get("list") or data.get("records") or []
+    return raw if isinstance(raw, list) else []
 
 
 def _ai_fingerprint(data: Dict[str, Any]) -> str:
@@ -790,6 +847,193 @@ def main(argv: Optional[List[str]] = None) -> int:
             stats.fail("看板字段", f"键集: {sorted(keys)}")
 
     run("九-后台管理", t_admin)
+
+    # ---------------- 十、关键路径：推荐边界 / 权限越权 / 系统开关联动 ----------------
+    def t_deep_paths() -> None:
+        admin_http = _session()
+        admin_tok = _login_token(admin_http, ADMIN_USERNAME, ADMIN_PASSWORD)
+        if not admin_tok:
+            stats.fail("深度用例-管理员鉴权", "无法登录管理员账号，系统开关用例跳过")
+            return
+        h_admin = {**admin_http.headers, **_auth_headers(admin_tok)}
+
+        # --- 推荐边界（不改变全局开关）---
+        kw = f"__no_match_kw_{int(time.time() * 1000)}__"
+        r_kw = admin_http.get(
+            BASE_URL + PATH_RECOMMEND,
+            params={"page": 1, "page_size": 12, "keyword": kw},
+            timeout=REQUEST_TIMEOUT,
+            headers=h_admin,
+        )
+        c_kw, d_kw = _unwrap_api_json(r_kw)
+        rec_kw = _recommend_record_list(d_kw)
+        if c_kw == 200 and len(rec_kw) == 0:
+            stats.ok("推荐边界-无命中关键词", "records/list 为空")
+        else:
+            stats.fail("推荐边界-无命中关键词", f"code={c_kw} n={len(rec_kw)}")
+
+        r_far = admin_http.get(
+            BASE_URL + PATH_RECOMMEND,
+            params={"page": 999999, "page_size": 8, "constitution_code": "yinxu"},
+            timeout=REQUEST_TIMEOUT,
+            headers=h_admin,
+        )
+        c_far, d_far = _unwrap_api_json(r_far)
+        rec_far = _recommend_record_list(d_far)
+        tot = (d_far or {}).get("total") if isinstance(d_far, dict) else None
+        if c_far == 200 and len(rec_far) == 0:
+            stats.ok("推荐边界-超大分页偏移", f"total={tot}")
+        else:
+            stats.warn("推荐边界-超大分页", f"code={c_far} n={len(rec_far)} total={tot}（池子极大时可能仍有数据）")
+
+        r_ps0 = admin_http.get(
+            BASE_URL + PATH_RECOMMEND,
+            params={"page": 1, "page_size": 0, "constitution_code": "pinghe"},
+            timeout=REQUEST_TIMEOUT,
+            headers=h_admin,
+        )
+        c0, d0 = _unwrap_api_json(r_ps0)
+        rec0 = _recommend_record_list(d0)
+        if c0 == 200 and len(rec0) >= 1:
+            stats.ok("推荐边界-page_size=0 回退", f"至少返回 1 条（后端 clamp） n={len(rec0)}")
+        elif c0 == 200 and len(rec0) == 0:
+            stats.warn("推荐边界-page_size=0", "返回 0 条（可能合法若候选池为空）")
+
+        # --- 权限越权：普通用户不可读系统开关、不可改全局开关 ---
+        stu_http = _session()
+        stu_tok = _login_token(stu_http, STUDENT_USERNAME, STUDENT_PASSWORD)
+        stu_label = STUDENT_USERNAME
+        if not stu_tok:
+            stu_tok = _login_token(stu_http, STUDENT_FALLBACK_USERNAME, STUDENT_FALLBACK_PASSWORD)
+            stu_label = STUDENT_FALLBACK_USERNAME
+        if not stu_tok and TEST_USERNAME.strip().lower() != "admin":
+            # 主流程已用非管理员账号登录时，直接复用其 JWT
+            stu_tok = token
+            stu_label = TEST_USERNAME
+        if not stu_tok:
+            stats.warn(
+                "权限越权-普通用户",
+                f"无法登录 {STUDENT_USERNAME} / {STUDENT_FALLBACK_USERNAME}，且主账号为 admin，跳过 403 断言",
+            )
+        else:
+            h_stu = {**stu_http.headers, **_auth_headers(stu_tok)}
+            r_forbidden = stu_http.get(
+                BASE_URL + PATH_ADMIN_SYSTEM_FLAGS,
+                timeout=REQUEST_TIMEOUT,
+                headers=h_stu,
+            )
+            if r_forbidden.status_code == 403:
+                stats.ok("权限越权-普通用户读系统开关", f"HTTP 403（{stu_label}）")
+            else:
+                c_f, _ = _unwrap_api_json(r_forbidden)
+                stats.fail("权限越权-普通用户读系统开关", f"期望 HTTP 403，实际 status={r_forbidden.status_code} code={c_f}")
+
+            r_put_stu = stu_http.put(
+                BASE_URL + PATH_ADMIN_SYSTEM_RECOMMEND + "?enabled=true",
+                timeout=REQUEST_TIMEOUT,
+                headers=h_stu,
+            )
+            if r_put_stu.status_code == 403:
+                stats.ok("权限越权-普通用户改推荐总开关", f"HTTP 403（{stu_label}）")
+            else:
+                c_ps, _ = _unwrap_api_json(r_put_stu)
+                stats.fail("权限越权-普通用户改推荐总开关", f"期望 HTTP 403，实际 status={r_put_stu.status_code} code={c_ps}")
+
+        # --- 系统开关联动：推荐总开关、AI 总开关 ---
+        def _put_recommend(enabled: bool) -> _HttpResp:
+            q = "true" if enabled else "false"
+            return admin_http.put(
+                BASE_URL + PATH_ADMIN_SYSTEM_RECOMMEND + f"?enabled={q}",
+                timeout=REQUEST_TIMEOUT,
+                headers=h_admin,
+            )
+
+        def _put_ai(enabled: bool) -> _HttpResp:
+            q = "true" if enabled else "false"
+            return admin_http.put(
+                BASE_URL + PATH_ADMIN_SYSTEM_AI + f"?enabled={q}",
+                timeout=REQUEST_TIMEOUT,
+                headers=h_admin,
+            )
+
+        try:
+            pr_off = _put_recommend(False)
+            co, _ = _unwrap_api_json(pr_off)
+            if co != 200:
+                stats.fail("系统开关-关闭推荐", f"PUT recommend code={co} {pr_off.text[:200]}")
+            else:
+                r_empty = admin_http.get(
+                    BASE_URL + PATH_RECOMMEND,
+                    params={"page": 1, "page_size": 12},
+                    timeout=REQUEST_TIMEOUT,
+                    headers=h_admin,
+                )
+                ce, de = _unwrap_api_json(r_empty)
+                ne = _recommend_record_list(de)
+                if ce == 200 and len(ne) == 0:
+                    stats.ok("系统开关-关闭推荐后 Feed", "列表为空")
+                else:
+                    stats.fail("系统开关-关闭推荐后 Feed", f"code={ce} n={len(ne)}")
+
+            pr_on = _put_recommend(True)
+            c_on, _ = _unwrap_api_json(pr_on)
+            if c_on != 200:
+                stats.fail("系统开关-恢复推荐", f"code={c_on}")
+            else:
+                r_back = admin_http.get(
+                    BASE_URL + PATH_RECOMMEND,
+                    params={"page": 1, "page_size": 8},
+                    timeout=REQUEST_TIMEOUT,
+                    headers=h_admin,
+                )
+                cb, db = _unwrap_api_json(r_back)
+                nb = _recommend_record_list(db)
+                if cb == 200 and len(nb) > 0:
+                    stats.ok("系统开关-恢复推荐后 Feed", f"n={len(nb)}")
+                else:
+                    stats.fail("系统开关-恢复推荐后 Feed", f"code={cb} n={len(nb)}")
+
+            ai_off = _put_ai(False)
+            ca, _ = _unwrap_api_json(ai_off)
+            if ca != 200:
+                stats.fail("系统开关-关闭 AI", f"code={ca}")
+            else:
+                r_ai = admin_http.post(
+                    BASE_URL + PATH_AI_GENERATE,
+                    data=json.dumps({"symptom": "联调开关探测", "constitution": "yinxu"}),
+                    timeout=REQUEST_TIMEOUT,
+                    headers=h_admin,
+                )
+                c_ai, d_ai = _unwrap_api_json(r_ai)
+                en = (d_ai or {}).get("enabled") if isinstance(d_ai, dict) else None
+                msg = (d_ai or {}).get("message") if isinstance(d_ai, dict) else None
+                if c_ai == 200 and en is False:
+                    stats.ok("系统开关-关闭 AI 后生成接口", "data.enabled=false")
+                else:
+                    stats.fail("系统开关-关闭 AI 后生成接口", f"code={c_ai} enabled={en!r} msg={msg!r}")
+
+            ai_on = _put_ai(True)
+            c_ai_on, d_ai_on = _unwrap_api_json(ai_on)
+            if c_ai_on != 200:
+                stats.fail("系统开关-恢复 AI", f"code={c_ai_on}")
+            else:
+                r_ai2 = admin_http.post(
+                    BASE_URL + PATH_AI_GENERATE,
+                    data=json.dumps({"symptom": "联调开关恢复探测", "constitution": "yinxu"}),
+                    timeout=REQUEST_TIMEOUT,
+                    headers=h_admin,
+                )
+                c2, d2 = _unwrap_api_json(r_ai2)
+                en2 = (d2 or {}).get("enabled") if isinstance(d2, dict) else None
+                if c2 == 200 and en2 is not False:
+                    stats.ok("系统开关-恢复 AI 后生成接口", "enabled 不为 false")
+                else:
+                    stats.fail("系统开关-恢复 AI 后生成接口", f"code={c2} enabled={en2!r}")
+        finally:
+            _put_recommend(True)
+            _put_ai(True)
+
+    run("十-推荐边界权限与系统开关", t_deep_paths)
 
     # ---------------- 汇总 ----------------
     total = stats.passed + stats.failed + stats.warned

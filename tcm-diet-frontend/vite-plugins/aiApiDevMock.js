@@ -1,4 +1,4 @@
-import { buildAiTherapyPlanData } from '../src/mocks/aiTherapyPlanResponse.js'
+import { buildAiTherapyPlanData } from '../src/mocks/aiTherapyPlanResponse'
 
 function readJsonBody(req) {
   return new Promise((resolve, reject) => {

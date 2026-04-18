@@ -1,0 +1,156 @@
+# 片段：与 docs/api-contract.md 对齐的最小 OpenAPI 3.0 描述（非完整生成物，供契约评审与工具导入）。
+openapi: 3.0.3
+info:
+  title: Campus Diet API (snippet)
+  version: "1.0"
+servers:
+  - url: http://127.0.0.1:11888
+    description: Local default (see campus-diet-backend application.yml)
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ApiResponse:
+      type: object
+      required: [code, msg]
+      properties:
+        code:
+          type: integer
+          description: HTTP 语义对齐的业务码；成功常见为 200（与 Spring ApiResponse.ok 一致）。
+        msg:
+          type: string
+        data:
+          description: 成功载荷；失败时多为 null
+    HealthOk:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: ok
+    ObservabilitySummaryData:
+      type: object
+      description: AdminDashboardController.buildObservabilitySummary 扁平字段
+      additionalProperties: true
+    AuthLoginBody:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    AuthLoginData:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          type: object
+          additionalProperties: true
+    RecommendFeedPageData:
+      type: object
+      description: 校园推荐 feed 分页（与 PageResult / CampusSceneController 对齐的最小字段）
+      properties:
+        records:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        has_more:
+          type: boolean
+paths:
+  /api/health:
+    get:
+      summary: Liveness (no ApiResponse envelope)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthOk"
+  /api/admin/dashboard/observability-summary:
+    get:
+      summary: Derived runtime / recommend / AI ratios
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: ApiResponse envelope
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ObservabilitySummaryData"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (non content-manager)
+  /api/auth/login:
+    post:
+      summary: Campus user login (ApiResponse envelope)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthLoginBody"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AuthLoginData"
+  /api/campus/recipes/recommend-feed:
+    get:
+      summary: Personalized / campus recommend feed (paged)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: page_size
+          schema: { type: integer, minimum: 1, maximum: 50 }
+        - in: query
+          name: seasonCode
+          schema: { type: string }
+        - in: query
+          name: constitutionCode
+          schema: { type: string }
+      responses:
+        "200":
+          description: ApiResponse envelope with paged recipe cards
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/RecommendFeedPageData"
+        "401":
+          description: Unauthorized

@@ -2,9 +2,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Calendar } from '@element-plus/icons-vue'
-import { fetchAdminWeeklyCalendar, saveAdminWeeklyCalendar } from '@/api/adminCampusWeeklyCalendar.js'
-import { fetchAdminRecipePage } from '@/api/adminRecipe.js'
-import { startOfWeekMonday, formatYmd } from '@/utils/campusWeekCalendar.js'
+import { fetchAdminWeeklyCalendar, saveAdminWeeklyCalendar } from '@/api/adminCampusWeeklyCalendar'
+import { fetchAdminRecipePage } from '@/api/adminRecipe'
+import { startOfWeekMonday, formatYmd } from '@/utils/campusWeekCalendar'
 
 const MEAL_SLOTS = [
   { key: 'breakfast', label: '早餐' },

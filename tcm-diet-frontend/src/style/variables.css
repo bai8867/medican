@@ -50,10 +50,24 @@
   --shadow-soft: 0 4px 14px rgba(44, 44, 42, 0.06);
   --shadow-card: 0 4px 14px rgba(44, 44, 42, 0.06);
   --shadow-card-hover: 0 10px 28px rgba(44, 44, 42, 0.12);
+  /** 卡片悬停：略抬升 + 主色外缘光（与 .ui-card / RecipeCard 等对齐） */
+  --shadow-card-hover-float: 0 12px 32px rgba(44, 44, 42, 0.12),
+    0 22px 52px color-mix(in srgb, var(--color-primary) 16%, transparent);
 
   /* 边框（列表、分割线等） */
   --color-border: #e5e3de;
   --color-border-strong: #d4d1c9;
+  /** 悬停时边缘偏主色（可见「绿边」但不刺眼） */
+  --color-border-hover-primary: color-mix(
+    in srgb,
+    var(--color-primary) 58%,
+    var(--color-border)
+  );
+  --color-border-hover-primary-soft: color-mix(
+    in srgb,
+    var(--color-primary) 42%,
+    var(--color-border)
+  );
 
   /* ----- 语义别名（兼容现有 Vue 组件） ----- */
   --color-bg-page: var(--color-bg-main);
@@ -62,4 +76,35 @@
   --color-text: var(--color-text-primary);
   --color-text-muted: #9b9b98;
   --color-accent-soft: rgba(212, 163, 115, 0.18);
+
+  /* ----- 动效与无障碍 ----- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 0.18s;
+  --duration-md: 0.22s;
+  --focus-ring-color: color-mix(in srgb, var(--color-primary) 55%, #fff);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* 正文排版（中文界面） */
+  --line-height-tight: 1.35;
+  --line-height-body: 1.55;
+
+  /* ----- 图表（ECharts 与数据可视化，与品牌色同系） ----- */
+  --chart-bar-start: #6b9e6f;
+  --chart-bar-end: #3a6247;
+  --chart-axis: #c9c6bf;
+  --chart-split: #ebe8e1;
+  --chart-tooltip-bg: rgba(44, 44, 42, 0.92);
+  --chart-pie-1: #4a7c59;
+  --chart-pie-2: #6b9e6f;
+  --chart-pie-3: #8b9f7a;
+  --chart-pie-4: #d4a373;
+  --chart-pie-5: #8b7d6b;
+  --chart-pie-6: #5c7a6a;
+  --chart-pie-7: #a89b88;
+  --chart-pie-8: #c75c5c;
+
+  /* 表单控件舒适高度（触摸友好） */
+  --control-height: 44px;
+  --control-height-compact: 40px;
 }

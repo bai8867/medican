@@ -51,6 +51,8 @@ public class RecipeCardDto {
     private List<String> suitConstitutions;
     /** 场景方案页：为何适合当前场景 */
     private String whyFit;
+    /** 推荐页：用于前端卡片展示的简短推荐原因 */
+    private String recommendReason;
     /** 与场景痛点命中的关键词 */
     private List<String> matchedPainTags;
 
@@ -68,6 +70,7 @@ public class RecipeCardDto {
                 .collect(Collectors.toList());
         d.setSeasonFit(seasons.isEmpty() ? List.of("all") : seasons);
         d.setSuitConstitutions(mapConstitutionLabels(r.getConstitutionTags()));
+        d.setRecommendReason(d.getEfficacySummary());
         return d;
     }
 

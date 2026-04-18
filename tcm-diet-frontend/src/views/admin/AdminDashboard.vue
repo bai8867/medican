@@ -1,9 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef, nextTick } from 'vue'
-import * as echarts from 'echarts'
-import * as XLSX from 'xlsx'
 import { ElMessage } from 'element-plus'
-import { getCurrentSeasonCode, getSeasonLabel, SEASON_OPTIONS } from '@/utils/season.js'
+import { getCurrentSeasonCode, getSeasonLabel, SEASON_OPTIONS } from '@/utils/season'
 import {
   getPlatformTotalCollectCount,
   getTopRecipesByCollect,
@@ -12,11 +10,11 @@ import {
   MOCK_CONSTITUTION_USER_COUNTS,
   formatIngredientList,
   formatSuitConstitutions,
-} from '@/utils/dashboardMockData.js'
+} from '@/utils/dashboardMockData'
 import {
   fetchDashboardOverview,
   fetchDashboardConstitutionDistribution,
-} from '@/api/adminDashboard.js'
+} from '@/api/adminDashboard'
 
 const overviewLoading = ref(true)
 const overview = ref({
@@ -36,6 +34,20 @@ const seasonalPanelSeason = ref(getCurrentSeasonCode())
 const seasonalPanelLabel = computed(() => getSeasonLabel(seasonalPanelSeason.value))
 const seasonalList = computed(() => getSeasonalTopRecipes(seasonalPanelSeason.value, 5))
 
+/** 与 variables.css --chart-pie-* 同系，供 ECharts 内联使用 */
+const CHART_PIE_PALETTE = [
+  '#4a7c59',
+  '#6b9e6f',
+  '#8b9f7a',
+  '#d4a373',
+  '#8b7d6b',
+  '#5c7a6a',
+  '#a89b88',
+  '#c75c5c',
+  '#7aab7e',
+  '#bcd2be',
+]
+
 const chartSeason = ref('')
 const barRef = shallowRef(null)
 const pieRef = shallowRef(null)
@@ -43,6 +55,7 @@ let barChart = null
 let pieChart = null
 let roBar = null
 let roPie = null
+let echartsLib = null
 
 const barData = computed(() => {
   const code = chartSeason.value || null
@@ -86,78 +99,180 @@ function buildBarOption() {
   const values = rows.map((r) => Number(r.collectCount) || 0).reverse()
   const sub = chartSeason.value ? `${getSeasonLabel(chartSeason.value)}季` : '全部季节'
   return {
+    animation: true,
+    animationDuration: 720,
+    animationDurationUpdate: 480,
+    animationEasing: 'cubicOut',
+    animationEasingUpdate: 'cubicOut',
     title: {
       text: `药膳收藏 TOP10（${sub}）`,
       left: 0,
-      textStyle: { fontSize: 14, fontWeight: 600 },
+      textStyle: { fontSize: 14, fontWeight: 600, color: '#2c2c2a' },
     },
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    grid: { left: 12, right: 24, top: 40, bottom: 12, containLabel: true },
-    xAxis: { type: 'value', name: '收藏数' },
-    yAxis: { type: 'category', data: names },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow',
+        shadowStyle: { color: 'rgba(74, 124, 89, 0.08)' },
+      },
+      backgroundColor: 'rgba(44, 44, 42, 0.92)',
+      borderWidth: 0,
+      padding: [8, 12],
+      textStyle: { color: '#fff', fontSize: 12 },
+    },
+    grid: { left: 12, right: 28, top: 44, bottom: 12, containLabel: true },
+    xAxis: {
+      type: 'value',
+      name: '收藏数',
+      nameTextStyle: { color: '#7a7a78', fontSize: 11, padding: [0, 0, 0, 6] },
+      axisLine: { show: true, lineStyle: { color: '#e5e3de' } },
+      splitLine: { lineStyle: { color: '#ebe8e1', type: [4, 4] } },
+      axisLabel: { color: '#7a7a78', fontSize: 11 },
+    },
+    yAxis: {
+      type: 'category',
+      data: names,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: '#2c2c2a', fontSize: 12, width: 96, overflow: 'truncate' },
+    },
     series: [
       {
         type: 'bar',
         data: values,
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-            { offset: 0, color: '#8fbc6b' },
-            { offset: 1, color: '#5a8f3a' },
-          ]),
+        barMaxWidth: 22,
+        showBackground: true,
+        backgroundStyle: {
+          color: 'rgba(44, 44, 42, 0.045)',
+          borderRadius: [0, 6, 6, 0],
         },
-        label: { show: true, position: 'right', fontSize: 11 },
+        itemStyle: {
+          borderRadius: [0, 8, 8, 0],
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 1,
+            y2: 0,
+            colorStops: [
+              { offset: 0, color: '#6b9e6f' },
+              { offset: 1, color: '#3a6247' },
+            ],
+          },
+        },
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 12,
+            shadowColor: 'rgba(74, 124, 89, 0.35)',
+          },
+          label: { fontWeight: 700, color: '#2c2c2a' },
+        },
+        label: {
+          show: true,
+          position: 'right',
+          fontSize: 11,
+          color: '#7a7a78',
+          distance: 6,
+        },
       },
     ],
   }
 }
 
 function buildPieOption() {
-  const data =
+  const raw =
     constitutionPie.value.length > 0 ? constitutionPie.value : MOCK_CONSTITUTION_USER_COUNTS
+  const palette = CHART_PIE_PALETTE
+  const data = raw.map((d, i) => ({
+    name: d.name,
+    value: d.value,
+    itemStyle: {
+      color: palette[i % palette.length],
+      borderRadius: 6,
+      borderColor: '#fff',
+      borderWidth: 2,
+    },
+  }))
   return {
+    animation: true,
+    animationDuration: 680,
+    animationDurationUpdate: 460,
+    animationEasing: 'cubicOut',
+    color: palette,
     title: {
       text: '用户体质分布',
       subtext: pieSubtext.value,
       left: 'center',
-      textStyle: { fontSize: 14, fontWeight: 600 },
-      subtextStyle: { fontSize: 11, color: '#888' },
+      top: 8,
+      textStyle: { fontSize: 14, fontWeight: 600, color: '#2c2c2a' },
+      subtextStyle: { fontSize: 11, color: '#7a7a78', lineHeight: 16 },
     },
-    tooltip: { trigger: 'item', formatter: '{b}<br/>{c} 人（{d}%）' },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}<br/>{c} 人（{d}%）',
+      backgroundColor: 'rgba(44, 44, 42, 0.92)',
+      borderWidth: 0,
+      textStyle: { color: '#fff', fontSize: 12 },
+    },
     legend: {
       type: 'scroll',
       orient: 'vertical',
       right: 4,
       top: 'middle',
-      textStyle: { fontSize: 11 },
+      textStyle: { fontSize: 11, color: '#7a7a78' },
+      inactiveColor: '#c9c6bf',
+      pageIconColor: '#4a7c59',
+      pageTextStyle: { color: '#7a7a78' },
     },
     series: [
       {
         name: '体质',
         type: 'pie',
-        radius: ['38%', '62%'],
-        center: ['40%', '52%'],
+        radius: ['36%', '64%'],
+        center: ['40%', '54%'],
         avoidLabelOverlap: true,
-        itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 1 },
-        label: { formatter: '{b}\n{d}%', fontSize: 11 },
+        emphasis: {
+          scale: true,
+          scaleSize: 8,
+          itemStyle: {
+            shadowBlur: 14,
+            shadowColor: 'rgba(44, 44, 42, 0.2)',
+          },
+          label: { fontWeight: 700 },
+        },
+        label: { formatter: '{b}\n{d}%', fontSize: 11, color: '#2c2c2a' },
+        labelLine: { length: 10, length2: 8, smooth: true },
         data,
       },
     ],
   }
 }
 
-function initCharts() {
+async function ensureEcharts() {
+  if (echartsLib) return echartsLib
+  const mod = await import('echarts')
+  echartsLib = mod.default ?? mod
+  return echartsLib
+}
+
+async function initCharts() {
+  await ensureEcharts()
   if (barRef.value && !barChart) {
-    barChart = echarts.init(barRef.value)
+    barChart = echartsLib.init(barRef.value)
     barChart.setOption(buildBarOption())
     roBar = new ResizeObserver(() => barChart?.resize())
     roBar.observe(barRef.value)
   }
   if (pieRef.value && !pieChart) {
-    pieChart = echarts.init(pieRef.value)
+    pieChart = echartsLib.init(pieRef.value)
     pieChart.setOption(buildPieOption())
     roPie = new ResizeObserver(() => pieChart?.resize())
     roPie.observe(pieRef.value)
   }
+  requestAnimationFrame(() => {
+    barChart?.resize()
+    pieChart?.resize()
+  })
 }
 
 function disposeCharts() {
@@ -171,18 +286,30 @@ function disposeCharts() {
   pieChart = null
 }
 
-watch(barData, () => {
-  barChart?.setOption(buildBarOption(), true)
-})
+watch(
+  barData,
+  () => {
+    barChart?.setOption(buildBarOption(), true)
+  },
+  { flush: 'post' },
+)
 
-watch([constitutionPie, pieSubtext], () => {
-  pieChart?.setOption(buildPieOption(), true)
-})
+watch(
+  [constitutionPie, pieSubtext],
+  () => {
+    pieChart?.setOption(buildPieOption(), true)
+  },
+  { flush: 'post' },
+)
 
 onMounted(async () => {
-  await loadDashboard()
   await nextTick()
-  initCharts()
+  await Promise.all([initCharts(), loadDashboard()])
+  await nextTick()
+  requestAnimationFrame(() => {
+    barChart?.resize()
+    pieChart?.resize()
+  })
 })
 
 onBeforeUnmount(() => {
@@ -196,7 +323,7 @@ function formatExportDateCompact(d = new Date()) {
   return `${y}${m}${day}`
 }
 
-function exportSeasonalExcel() {
+async function exportSeasonalExcel() {
   const seasonCol = `${seasonalPanelLabel.value}季`
   const rows = seasonalList.value.map((r) => ({
     药膳名称: r.name,
@@ -209,12 +336,18 @@ function exportSeasonalExcel() {
     ElMessage.warning('所选季节暂无药膳数据')
     return
   }
-  const ws = XLSX.utils.json_to_sheet(rows)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, '应季菜谱')
-  const fname = `应季菜谱_${seasonCol}_${formatExportDateCompact()}.xlsx`
-  XLSX.writeFile(wb, fname)
-  ElMessage.success('已导出 Excel')
+  try {
+    const xlsxMod = await import('xlsx')
+    const XLSX = xlsxMod.default ?? xlsxMod
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, '应季菜谱')
+    const fname = `应季菜谱_${seasonCol}_${formatExportDateCompact()}.xlsx`
+    XLSX.writeFile(wb, fname)
+    ElMessage.success('已导出 Excel')
+  } catch {
+    ElMessage.error('导出失败，请稍后重试')
+  }
 }
 </script>
 
@@ -448,7 +581,17 @@ function exportSeasonalExcel() {
 }
 
 .panel__season-select {
-  width: 100px;
+  width: 112px;
+}
+
+.panel__season-select :deep(.el-input__wrapper) {
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 1px var(--color-border) inset;
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.panel__season-select :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 35%, var(--color-border)) inset;
 }
 
 .panel__chart-filters {
@@ -464,7 +607,17 @@ function exportSeasonalExcel() {
 }
 
 .panel__chart-season {
-  width: 132px;
+  width: 148px;
+}
+
+.panel__chart-season :deep(.el-input__wrapper) {
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 1px var(--color-border) inset;
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.panel__chart-season :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 35%, var(--color-border)) inset;
 }
 
 .panel__table {

@@ -1,8 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { ArrowLeft, MagicStick } from '@element-plus/icons-vue'
+import { showToast, Button as VanButton, Tag as VanTag, Empty as VanEmpty, Icon as VanIcon } from 'vant'
 import IngredientsList from '@/components/recipe/IngredientsList.vue'
 import StepsList from '@/components/recipe/StepsList.vue'
 import LoadingSkeleton from '@/components/common/LoadingSkeleton.vue'
@@ -15,11 +14,11 @@ import {
   setRecipeFavorite,
   postRecipeContentFeedback,
   RECIPE_DETAIL_FOOTER_LEGAL,
-} from '@/api/recipe.js'
+} from '@/api/recipe'
 import { useCollectStore } from '@/stores/collect'
-import { looksLikeBearerJwt } from '@/utils/authToken.js'
-import { readCampusToken } from '@/utils/storedTokens.js'
-import { SEASON_OPTIONS } from '@/utils/season.js'
+import { looksLikeBearerJwt } from '@/utils/authToken'
+import { readCampusToken } from '@/utils/storedTokens'
+import { SEASON_OPTIONS } from '@/utils/season'
 
 const route = useRoute()
 const router = useRouter()
@@ -88,7 +87,7 @@ async function setFeedback(v) {
   } catch {
     /* 后端未就绪时仅本地记录 */
   }
-  ElMessage.success('感谢反馈')
+  showToast({ type: 'success', message: '感谢反馈' })
 }
 
 function goAiCustomize() {
@@ -109,7 +108,7 @@ async function onToggleFavorite() {
   if (import.meta.env.VITE_USE_MOCK !== 'true') {
     const tk = readCampusToken()
     if (!looksLikeBearerJwt(tk)) {
-      ElMessage.warning('请先登录后再收藏')
+      showToast('请先登录后再收藏')
       router.push({
         path: '/campus/login',
         query: { redirect: route.fullPath },
@@ -131,7 +130,7 @@ async function onToggleFavorite() {
     collectStore.toggleCollect(rid)
     recipe.value.collectCount = prevCount
     if (import.meta.env.VITE_USE_MOCK !== 'true' && (e?.code === 401 || /登录/.test(String(e?.message || '')))) {
-      ElMessage.warning(typeof e?.message === 'string' ? e.message : '请先登录后再收藏')
+      showToast(typeof e?.message === 'string' ? e.message : '请先登录后再收藏')
       router.push({
         path: '/campus/login',
         query: { redirect: route.fullPath },
@@ -162,7 +161,7 @@ async function load() {
     recipe.value = normalizeRecipeDetail(unwrapDetail(data))
     if (!recipe.value) {
       notFound.value = true
-      ElMessage.warning('未找到该菜谱')
+      showToast('未找到该菜谱')
     } else if (typeof recipe.value.favorited === 'boolean') {
       if (recipe.value.favorited) collectStore.addCollect(recipe.value.id)
       else collectStore.removeCollect(recipe.value.id)
@@ -173,7 +172,7 @@ async function load() {
     recipe.value = demo ? normalizeRecipeDetail(demo) : null
     if (!recipe.value) {
       notFound.value = true
-      ElMessage.warning(
+      showToast(
         allowDemo ? '未找到该菜谱' : '药膳详情需从服务器加载，请确认后端已启动或该药膳已上架。',
       )
     } else if (typeof recipe.value.favorited === 'boolean') {
@@ -215,32 +214,34 @@ watch(
     <LoadingSkeleton v-if="loading" :rows="3" />
 
     <div v-else-if="notFound" class="recipe-detail__missing page-card">
-      <el-empty description="药膳不存在或已下架">
-        <el-button type="primary" @click="router.push({ name: 'Home' })">返回推荐首页</el-button>
-      </el-empty>
+      <van-empty image="search" description="药膳不存在或已下架">
+        <van-button type="primary" round class="recipe-detail__missing-btn" @click="router.push({ name: 'Home' })">
+          返回推荐首页
+        </van-button>
+      </van-empty>
     </div>
 
     <template v-else-if="recipe">
       <header class="top-nav page-card">
-        <el-button
+        <van-button
           class="top-nav__back"
-          text
-          circle
+          round
+          plain
+          hairline
+          icon="arrow-left"
+          type="default"
           aria-label="返回"
           @click="router.back()"
-        >
-          <el-icon :size="20">
-            <ArrowLeft />
-          </el-icon>
-        </el-button>
+        />
         <h1 class="top-nav__title">{{ recipe.name }}</h1>
         <div class="top-nav__actions">
           <span v-if="recipe.collectCount != null" class="top-nav__count">
             {{ recipe.collectCount }} 收藏
           </span>
-          <el-button
-            text
-            circle
+          <van-button
+            round
+            plain
+            hairline
             class="top-nav__fav"
             :class="{ 'top-nav__fav--on': collected }"
             :aria-label="collected ? '取消收藏' : '收藏'"
@@ -266,7 +267,7 @@ watch(
                 d="M12 21s-6.716-4.438-9.33-8.15C.55 10.702.5 6.5 3.23 4.36 4.83 3.09 7.21 2.8 9 4c.78.58 1.38 1.4 2 2.2.62-.8 1.22-1.62 2-2.2 1.79-1.2 4.17-.91 5.77.36 2.73 2.14 2.82 6.34-.47 8.49C18.72 16.56 12 21 12 21Z"
               />
             </svg>
-          </el-button>
+          </van-button>
         </div>
       </header>
 
@@ -292,15 +293,15 @@ watch(
           <div v-if="recipe.effectTags?.length" class="effect-tags">
             <span class="effect-tags__label">核心功效</span>
             <div class="effect-tags__list">
-              <el-tag
+              <van-tag
                 v-for="(tag, i) in recipe.effectTags"
                 :key="i"
                 type="success"
-                effect="plain"
-                size="small"
+                plain
+                size="medium"
               >
                 {{ tag }}
-              </el-tag>
+              </van-tag>
             </div>
           </div>
         </div>
@@ -323,16 +324,16 @@ watch(
             <dt>适用体质</dt>
             <dd>
               <template v-if="recipe.suitConstitutions?.length">
-                <el-tag
+                <van-tag
                   v-for="(c, i) in recipe.suitConstitutions"
                   :key="i"
                   class="tag-spaced"
                   type="success"
-                  effect="plain"
-                  size="small"
+                  plain
+                  size="medium"
                 >
                   {{ c }}
-                </el-tag>
+                </van-tag>
               </template>
               <span v-else>—</span>
             </dd>
@@ -360,29 +361,35 @@ watch(
       <footer class="feedback-bar page-card">
         <div class="feedback-bar__left">
           <span class="feedback-bar__q">这篇内容对你有帮助吗？</span>
-          <el-button
+          <van-button
             :type="feedback === 'up' ? 'primary' : 'default'"
             plain
+            hairline
+            round
+            size="small"
             :disabled="!!feedback"
             @click="setFeedback('up')"
           >
             有用
-          </el-button>
-          <el-button
+          </van-button>
+          <van-button
             :type="feedback === 'down' ? 'primary' : 'default'"
             plain
+            hairline
+            round
+            size="small"
             :disabled="!!feedback"
             @click="setFeedback('down')"
           >
             没用
-          </el-button>
+          </van-button>
         </div>
-        <el-button type="success" class="feedback-bar__ai" @click="goAiCustomize">
-          <el-icon class="el-icon--left">
-            <MagicStick />
-          </el-icon>
-          AI定制更适合你的方案
-        </el-button>
+        <van-button type="success" round class="feedback-bar__ai" @click="goAiCustomize">
+          <span class="feedback-bar__ai-inner">
+            <van-icon name="guide-o" class="feedback-bar__ai-icon" />
+            AI定制更适合你的方案
+          </span>
+        </van-button>
       </footer>
       <p class="recipe-legal-note page-card" role="note">
         {{ RECIPE_DETAIL_FOOTER_LEGAL }}
@@ -394,6 +401,10 @@ watch(
 <style scoped>
 .recipe-detail {
   padding-bottom: var(--space-xl);
+}
+
+.recipe-detail__missing-btn {
+  margin-top: var(--space-md);
 }
 
 .top-nav {
@@ -411,6 +422,15 @@ watch(
 .top-nav__back {
   flex-shrink: 0;
   color: var(--color-text);
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  border-color: var(--color-border);
+}
+
+.top-nav__back :deep(.van-icon) {
+  font-size: 18px;
 }
 
 .top-nav__title {
@@ -441,6 +461,11 @@ watch(
 
 .top-nav__fav {
   color: var(--color-text-secondary);
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  border-color: var(--color-border);
 }
 
 .top-nav__fav--on {
@@ -660,6 +685,16 @@ watch(
 
 .feedback-bar__ai {
   flex-shrink: 0;
+}
+
+.feedback-bar__ai-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.feedback-bar__ai-icon {
+  font-size: 18px;
 }
 
 .recipe-legal-note {

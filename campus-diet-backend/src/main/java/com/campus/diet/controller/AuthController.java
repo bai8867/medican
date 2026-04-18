@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,13 +26,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ApiResponse<Map<String, Object>> login(@RequestBody LoginBody body) {
+    public ApiResponse<Map<String, Object>> login(@Valid @RequestBody LoginBody body) {
         AuthService.LoginToken t = authService.login(body.getUsername(), body.getPassword());
         return ApiResponse.ok(tokenPayload(t));
     }
 
     @PostMapping("/register")
-    public ApiResponse<Map<String, Object>> register(@RequestBody RegisterBody body) {
+    public ApiResponse<Map<String, Object>> register(@Valid @RequestBody RegisterBody body) {
         AuthService.LoginToken t =
                 authService.register(body.getUsername(), body.getPassword(), body.getRole());
         return ApiResponse.ok(tokenPayload(t));
